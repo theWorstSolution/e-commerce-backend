@@ -17,10 +17,16 @@ const getUsers = catchAsync(async (req, res) => {
 });
 
 const getUser = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.params.userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  console.log('await userService.getUserById')
+  var user = await userService.getUserById(req.params.user.uid);
+  console.log('await userService.getUserById123')
+  if (!user || user === undefined) {
+    // throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    console.log('await userService.createUser')
+    user = await userService.createUser(req.params.user)
+    console.log('await userService.createUser123')
   }
+  console.log(user)
   res.send(user);
 });
 

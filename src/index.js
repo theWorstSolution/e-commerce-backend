@@ -11,6 +11,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   });
 });
 
+
 const exitHandler = () => {
   if (server) {
     server.close(() => {
@@ -36,3 +37,7 @@ process.on('SIGTERM', () => {
     server.close();
   }
 });
+
+// server = app.listen(config.port, () => {
+//   logger.info(`Listening to port ${config.port}`);
+// });
