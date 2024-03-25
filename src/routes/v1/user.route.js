@@ -7,12 +7,13 @@ const userController = require('../../controllers/user.controller');
 const router = express.Router();
 
 router
-  .route('/')
+  .route('/user')
   // .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
   .get(authRequire, userController.getUser);
 /* client gửi token, cho qua auth require, đính kèm decoded user vào request,
  vào getUser -> get theo id, nếu chưa có thì create user */
 
+ router.route('/users').get(userController.getUsers)
 
  // router
 //   .route('/:userId')

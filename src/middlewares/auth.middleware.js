@@ -53,7 +53,8 @@ const authRequire = catchAsync(async (req, res, next) => {
     .verifyIdToken(token)
     .then((user) => {
       // console.log(req)
-      // console.log(user)
+      console.log('auth require');
+      console.log(user)
       req.params.user = user;
       return next();
     })
