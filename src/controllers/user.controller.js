@@ -18,17 +18,26 @@ const getUsers = catchAsync(async (req, res) => {
 });
 
 const getUser = catchAsync(async (req, res) => {
-  console.log('await userService.getUserById')
-  var user = await userService.getUserById(req.params.user.uid);
-  console.log('await userService.getUserById123')
-  if (!user || user === undefined) {
-    // throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-    console.log('await userService.createUser')
-    user = await userService.createUser(req.params.user)
-    console.log('await userService.createUser123')
+  let {uid} = req.params
+  if(req.auth.role==='user'){
+    if(req.auth.uid!=req.params.uid){
+      // TODO: permission deny
+      res.send()
+    }
   }
-  console.log(user)
+
+  var user = await userService.getUserById(uid);
+  if (!user || user === undefined) {
+    if(req.auth.role==='user'){
+      user = await userService.createUser(req.auth)
+    }else{
+      // TODO: USER not found
+      throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    }
+  }
+  // console.log(user)
   res.send(user);
+  
 });
 
 const updateUser = catchAsync(async (req, res) => {

@@ -55,13 +55,15 @@ const authRequire = catchAsync(async (req, res, next) => {
       // console.log(req)
       console.log('auth require');
       console.log(user)
-      req.params.user = user;
+      req.auth = {user};
+      console.log('here');
+      console.log(req.auth);
       return next();
     })
-    .catch((error) => {
-      // Handle error
-      throw new ApiError(httpStatus.UNAUTHORIZED, "UNAUTHORIZED");
-    });
+    // .catch((error) => {
+    //   // Handle error
+    //   throw new ApiError(httpStatus.UNAUTHORIZED, "UNAUTHORIZED");
+    // });
   
 });
 
