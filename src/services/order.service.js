@@ -16,7 +16,7 @@ const createOrder = async (body) => {
   };
 
   const updateOrderById = async (id, updateBody) => {
-    const order = await getProductById(id);
+    const order = await getOrderById(id);
     if (!order) {
       throw new ApiError(httpStatus.NOT_FOUND, 'order not found');
     }

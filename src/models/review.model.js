@@ -8,7 +8,7 @@ const { roles } = require('../config/roles');
 // Define the schema for the Review model
 const reviewSchema = new mongoose.Schema({
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'User', // Reference to the User model
       required: true
     },

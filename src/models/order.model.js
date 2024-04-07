@@ -12,7 +12,7 @@ const { roles } = require('../config/roles');
 */
 const orderSchema = new mongoose.Schema({
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'User' // Reference to the Category model
     },
     product: {

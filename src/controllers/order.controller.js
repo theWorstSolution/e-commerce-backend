@@ -3,6 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { orderService, userService, productService } = require('../services');
+const { Order } = require('../models');
 
 /* check chỉ cho user tạo order với id của họ */
 const createOrder = catchAsync(async (req, res) => {
@@ -26,14 +27,15 @@ const getOrders = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name', 'role']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await orderService.queryOrders(filter, options);
-  const result1 = await result.populate('user','name').populate('product','name').execPopulate() 
-  console.log(result1)
-  res.send(result1);
+  const populatedDocs = await Order.populate(result.results,[{ path: 'user', select: 'name' }, {path: 'product', select: 'name'}])
+  result.results = populatedDocs;
+  res.send(result);
 });
 
 const getOrder = catchAsync(async (req, res) => {
   let {id} = req.params
   var order = await orderService.getOrderById(id);
+  order = await order.populate('user','name').populate('product','name').execPopulate()
   res.send(order);
 });
 
