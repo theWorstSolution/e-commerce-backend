@@ -3,7 +3,6 @@ const { Product } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 const createProduct = async (productBody) => {
-    // TODO: check product đã có chưa
     return Product.create(productBody);
   };
 

@@ -35,7 +35,7 @@ const updateCategoriesById = async (id, body) => {
 const addProductToCats = async (productId, catsIdList) => {
   for (let catId of catsIdList) {
     let cat = await getCategoryById(catId)
-    cat.products.unshift(productId)
+    cat.products.push(productId)
     cat.save()
   }
 };

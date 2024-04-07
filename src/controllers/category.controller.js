@@ -4,9 +4,7 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { categoryService } = require('../services');
 
-// body ko cần có rootId trong ancestor
 const createCategory = catchAsync(async (req, res) => {
-  req.body.ancestors.unshift(categoryService.rootCategoryId)
   const category = await categoryService.createCategory(req.body);
   let parentCategoryId = req.body.ancestors[req.body.ancestors.length-1]
   console.log('parentCategoryId: '+parentCategoryId);
@@ -28,10 +26,6 @@ const getCategories = catchAsync(async (req, res) => {
 
 const getCategory = catchAsync(async (req, res) => {
   let {id} = req.params
-  if(id=='root'){
-    res.send(categoryService.rootCategory)
-    return
-  }
   var category = await categoryService.getCategoryById(id);
   res.send(category);
 });
@@ -39,12 +33,7 @@ const getCategory = catchAsync(async (req, res) => {
 const getChildrenOfCategory = catchAsync(async (req,res)=>{
   let {id} = req.params
   console.log(id);
-  var parentCategory;
-  if(id=='root'){
-    parentCategory = await categoryService.getRootCategory()
-  }else{
-    parentCategory = await categoryService.getCategoryById(id);
-  }
+  const  parentCategory = await categoryService.getCategoryById(id);
   // console.log(JSON.stringify(parentCategory));
   let populatedParentCat = await parentCategory.populate('children').execPopulate()
   res.send(populatedParentCat.children)
