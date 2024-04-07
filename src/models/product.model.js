@@ -39,7 +39,11 @@ const productSchema = new mongoose.Schema({
     reviews: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Review' // Reference to the Review model
-    }]
+    }],
+    soldAmount: {
+      type: Number,
+      default: 0
+    }
   });
   // add plugin that converts mongoose to json
   productSchema.plugin(toJSON);

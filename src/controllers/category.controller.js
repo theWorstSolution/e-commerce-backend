@@ -40,7 +40,7 @@ const getChildrenOfCategory = catchAsync(async (req,res)=>{
 })
 
 const updateCategory = catchAsync(async (req, res) => {
-  const category = await categoryService.updateCategoriesById(req.params.id, req.body);
+  const category = await categoryService.updateCategoryById(req.params.id, req.body);
   res.send(category);
 });
 

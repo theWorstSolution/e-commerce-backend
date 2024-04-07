@@ -22,7 +22,7 @@ const getCategoryById = async (id) => {
   return await Category.findById(id);
 };
 
-const updateCategoriesById = async (id, body) => {
+const updateCategoryById = async (id, body) => {
   const category = await getCategoryById(id);
   if (!category) {
     throw new ApiError(httpStatus.NOT_FOUND, 'category not found');
@@ -46,7 +46,7 @@ module.exports = {
   createCategory,
   queryCategories,
   getCategoryById,
-  updateCategoriesById,
+  updateCategoryById,
   getRootCategory,
   addProductToCats,
   rootCategoryId,

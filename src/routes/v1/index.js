@@ -6,6 +6,7 @@ const config = require('../../config/config');
 const testRoute = require('./test.route');
 const productRoute = require('./product.route')
 const categoryRoute = require('./category.route')
+const orderRoute = require('./order.route')
 const Product = require('../../models/product.model');
 
 const router = express.Router();
@@ -26,6 +27,10 @@ const defaultRoutes = [
   {
     path: '/categories',
     route: categoryRoute,
+  },
+  {
+    path: '/orders',
+    route: orderRoute,
   },
   {
     path: '/test',
