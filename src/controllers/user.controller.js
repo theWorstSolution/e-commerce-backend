@@ -3,15 +3,19 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
-
+const qs = require('qs')
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
   res.status(httpStatus.CREATED).send(user);
 });
 
 const getUsers = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const query = qs.parse(req.url.split('?')[1]);
+  const filter = query.filter
+  let options = query.options
+  options = {sortBy:null, ...options}
+  console.log(JSON.stringify(filter));
+  console.log(JSON.stringify(options));
   const result = await userService.queryUsers(filter, options);
   console.log(result)
   res.send(result);

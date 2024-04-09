@@ -69,7 +69,10 @@ firebase: { identities: [Object], sign_in_provider: 'google.com' },
 uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
 } */
   const dbUser = await userService.getUserById(user.uid)
-  req.auth.role = dbUser.role;
+
+  req.auth.role = dbUser ? dbUser.role : 'user';
+  
+  
 
   return next();
 

@@ -13,9 +13,13 @@ const { authLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
+const qs = require('qs')
 
 const app = express();
-
+//BUG: this not work
+// app.set('query parser', function(str) {
+//   return qs.parse(str, { arrayLimit: Infinity });
+// });
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
   app.use(morgan.errorHandler);
@@ -44,6 +48,8 @@ app.options('*', cors());
 // jwt authentication
 // app.use(passport.initialize());
 // passport.use('jwt', jwtStrategy);
+
+
 
 // limit repeated failed requests to auth endpoints
 if (config.env === 'production') {
