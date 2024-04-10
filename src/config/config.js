@@ -28,10 +28,6 @@ const envVarsSchema = Joi.object()
 
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
 
-// if (error) {
-//   throw new Error(`Config validation error: ${error.message}`);
-// }
-
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
@@ -42,6 +38,7 @@ module.exports = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     },
+    rootCategoryId: envVars.ROOT_CATEGORY_ID
   },
   jwt: {
     secret: envVars.JWT_SECRET,

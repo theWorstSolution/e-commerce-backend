@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const { productService } = require('../services');
 const {categoryService} = require('../services')
 const { Product } = require('../models');
+const qs = require('qs')
 
 const createProduct = catchAsync(async (req, res) => {
   const product = await productService.createProduct(req.body);
@@ -17,8 +18,11 @@ const createProduct = catchAsync(async (req, res) => {
  * @returns products có populate categories name
  */
 const getProducts = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
-  let options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const query = qs.parse(req.url.split('?')[1]);
+  const filter = query.filter
+  let options = query.options
+  options = {sortBy:null, ...options}
+  console.log(JSON.stringify(query))
   const result = await productService.queryProducts(filter, options);
   const populatedDocs = await Product.populate(result.results,{ path: 'categories', select: 'name' })
   result.results = populatedDocs;
