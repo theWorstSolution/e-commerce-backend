@@ -11,47 +11,50 @@ const { roles } = require('../config/roles');
   reviewsS
 */
 const productSchema = new mongoose.Schema({
-    name: {
-      type: String,
-      required: true
-    },
-    categories: [{
+  name: {
+    type: String,
+    required: true
+  },
+  categories: [{
+    id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category' // Reference to the Category model
-    }],
-    price: {
-      type: Number,
-      required: true
     },
-    picture: {
-      type: String,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    status: {
-      type: Number,
-      enum: [0, 1], // 0: disabled, 1: active
-      default: 1 // Default to active
-    },
-    reviews: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Review' // Reference to the Review model
-    }],
-    soldAmount: {
-      type: Number,
-      default: 0
-    }
-  });
-  // add plugin that converts mongoose to json
-  productSchema.plugin(toJSON);
-  productSchema.plugin(paginate);
+    name: String
+  }],
+  price: {
+    type: Number,
+    required: true
+  },
+  picture: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: Number,
+    enum: [0, 1], // 0: disabled, 1: active
+    default: 1 // Default to active
+  },
+  reviews: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review' // Reference to the Review model
+  }],
+  soldAmount: {
+    type: Number,
+    default: 0
+  }
+});
+// add plugin that converts mongoose to json
+productSchema.plugin(toJSON);
+productSchema.plugin(paginate);
 
-  // Create the Product model using the schema
-  const Product = mongoose.model('Product', productSchema);
-  
-  // Export the Product model
-  module.exports = Product;
+// Create the Product model using the schema
+const Product = mongoose.model('Product', productSchema);
+
+// Export the Product model
+module.exports = Product;
 

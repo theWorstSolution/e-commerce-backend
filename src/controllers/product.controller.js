@@ -7,15 +7,15 @@ const {categoryService} = require('../services')
 const { Product } = require('../models');
 const qs = require('qs')
 
+//TODO: check thông tin categories đúng ko
 const createProduct = catchAsync(async (req, res) => {
   const product = await productService.createProduct(req.body);
-  categoryService.addProductToCats(product.id, product.categories)
+  categoryService.addProductToCats(product.id, product.categories.map((cat=>cat.id)))
   res.status(httpStatus.CREATED).send(product);
 });
 
-//TODO: modify filter
 /**
- * @returns products có populate categories name
+ * @returns products
  */
 const getProducts = catchAsync(async (req, res) => {
   const query = qs.parse(req.url.split('?')[1]);
@@ -24,30 +24,31 @@ const getProducts = catchAsync(async (req, res) => {
   options = {sortBy:null, ...options}
   console.log(JSON.stringify(query))
   const result = await productService.queryProducts(filter, options);
-  const populatedDocs = await Product.populate(result.results,{ path: 'categories', select: 'name' })
-  result.results = populatedDocs;
+  // const populatedDocs = await Product.populate(result.results,{ path: 'categories', select: 'name' })
+  // result.results = populatedDocs;
   res.send(result);
 });
 
 const getProduct = catchAsync(async (req, res) => {
   let {id} = req.params
   const product = await productService.getProductById(id);
-  populatedProduct = await product.populate('categories','name').execPopulate()
-  res.send(populatedProduct);
+  // populatedProduct = await product.populate('categories','name').execPopulate()
+  // res.send(populatedProduct);
+  res.send(product)
 });
 
 const updateProduct = catchAsync(async (req, res) => {
   let oldProduct = await productService.getProductById(req.params.id)
-  oldProduct = await oldProduct.populate('categories').execPopulate()
+  oldProduct = await oldProduct.populate('categories.id').execPopulate()
   for(let category of oldProduct.categories){
-    category.products = category.products.filter((product)=>{return (product!=req.params.id);})
-    category.save()
+    category.id.products = category.id.products.filter((product)=>{return (product!=req.params.id);})
+    category.id.save()
   }
   let newProduct = await productService.updateProductById(req.params.id, req.body)
-  newProduct = await newProduct.populate('categories').execPopulate();
+  newProduct = await newProduct.populate('categories.id').execPopulate();
   for(let category of newProduct.categories){
-    category.products.push(newProduct.id)
-    category.save()
+    category.id.products.push(newProduct.id)
+    category.id.save()
   }
   res.send(newProduct);
 });
