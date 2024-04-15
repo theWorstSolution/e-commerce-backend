@@ -20,11 +20,12 @@ const orderSchema = new mongoose.Schema({
       ref: 'Product' // Reference to the Category model
     },
     amount: Number,
-    productPrice: Number,
+    totalPrice: Number,
     deliveryFee: {
       type: Number, 
       default: 0
     },
+    totalCost: Number,
     status: {
       type: String,
       enum: ['onGoing', 'canceled', 'delivered'],
@@ -36,6 +37,11 @@ const orderSchema = new mongoose.Schema({
       default: 1
     }
   });
+// Middleware to calculate totalCost before saving
+orderSchema.pre('save', function(next) {
+  this.totalCost = this.totalPrice + this.deliveryFee;
+  next();
+});
   // add plugin that converts mongoose to json
   orderSchema.plugin(toJSON);
   orderSchema.plugin(paginate);

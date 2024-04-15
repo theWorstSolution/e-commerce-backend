@@ -4,6 +4,7 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { orderService, userService, productService } = require('../services');
 const { Order } = require('../models');
+const qs = require('qs')
 
 /* check chỉ cho user tạo order với id của họ */
 const createOrder = catchAsync(async (req, res) => {
@@ -24,8 +25,11 @@ const createOrder = catchAsync(async (req, res) => {
 
 //TODO: modify filter
 const getOrders = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const query = qs.parse(req.url.split('?')[1], { depth: 10 });
+  const filter = query.filter
+  const options = {sortBy:null ,...query.options}
+  console.log(JSON.stringify(options));
+  console.log(JSON.stringify(filter));
   const result = await orderService.queryOrders(filter, options);
   const populatedDocs = await Order.populate(result.results,[{ path: 'user', select: 'name' }, {path: 'product', select: 'name'}])
   result.results = populatedDocs;
