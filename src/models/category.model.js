@@ -15,6 +15,7 @@ const categorySchema = new mongoose.Schema({
       type: String,
       required: true
     },
+    picture: String,
     ancestors: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category' // Reference to the Category model itself

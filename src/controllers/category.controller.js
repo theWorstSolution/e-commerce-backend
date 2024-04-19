@@ -3,6 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { categoryService } = require('../services');
+const qs = require('qs')
 
 const createCategory = catchAsync(async (req, res) => {
   const category = await categoryService.createCategory(req.body);
@@ -17,10 +18,14 @@ const createCategory = catchAsync(async (req, res) => {
 
 //TODO: modify filter
 const getCategories = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const query = qs.parse(req.url.split('?')[1]);
+  const filter = query.filter
+  const options = query.options
+  console.log(JSON.stringify(filter))
+  console.log(JSON.stringify(options))
   const result = await categoryService.queryCategories(filter, options);
-  console.log(result)
+  // const populatedDocs = await Product.populate(result.results,{ path: 'categories', select: 'name' })
+  // result.results = populatedDocs;
   res.send(result);
 });
 
