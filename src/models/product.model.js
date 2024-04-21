@@ -26,10 +26,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  picture: {
+  picture: [{
     type: String,
     required: true
-  },
+  }],
   description: {
     type: String,
     required: true
@@ -43,11 +43,21 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review' // Reference to the Review model
   }],
+  rating:{
+    type: Number,
+    default: 3
+  },
   soldAmount: {
     type: Number,
     default: 0
   }
 });
+productSchema.pre('update', function(next) {
+  //TODO: update rating based on reviews
+  // this.totalCost = this.totalPrice + this.deliveryFee;
+  next();
+});
+
 // add plugin that converts mongoose to json
 productSchema.plugin(toJSON);
 productSchema.plugin(paginate);
