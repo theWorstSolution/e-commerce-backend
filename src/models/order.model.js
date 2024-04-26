@@ -38,10 +38,10 @@ const orderSchema = new mongoose.Schema({
     }
   });
 // Middleware to calculate totalCost before saving
-orderSchema.pre('save', function(next) {
-  this.totalCost = this.totalPrice + this.deliveryFee;
-  next();
-});
+// orderSchema.pre('save', function(next) {
+//   this.totalCost = this.totalPrice + this.deliveryFee;
+//   next();
+// });
   // add plugin that converts mongoose to json
   orderSchema.plugin(toJSON);
   orderSchema.plugin(paginate);

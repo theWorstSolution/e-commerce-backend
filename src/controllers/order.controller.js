@@ -14,9 +14,11 @@ const createOrder = catchAsync(async (req, res) => {
   //   res.send()
   //   return
   // }
-
-  const order = await orderService.createOrder(req.body);
   const product = await productService.getProductById(req.body.product)
+  req.body.totalPrice = product.price * amount
+  req.body.totalCost = req.body.totalPrice
+  const order = await orderService.createOrder(req.body);
+  
   product.soldAmount += req.body.amount
   product.save()
   
@@ -31,8 +33,8 @@ const getOrders = catchAsync(async (req, res) => {
   console.log(JSON.stringify(options));
   console.log(JSON.stringify(filter));
   const result = await orderService.queryOrders(filter, options);
-  const populatedDocs = await Order.populate(result.results,[{ path: 'user', select: 'name' }, {path: 'product', select: 'name'}])
-  result.results = populatedDocs;
+  // const populatedDocs = await Order.populate(result.results,[{ path: 'user', select: 'name' }, {path: 'product', select: 'name'}])
+  // result.results = populatedDocs;
   res.send(result);
 });
 
