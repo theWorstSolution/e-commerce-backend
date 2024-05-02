@@ -7,13 +7,19 @@ const qs = require('qs')
 
 const createCategory = catchAsync(async (req, res) => {
   const category = await categoryService.createCategory(req.body);
+  res.status(httpStatus.CREATED).send(category);
+
+  // append newCategory to children of parentCategory
   let parentCategoryId = req.body.ancestors[req.body.ancestors.length-1]
   console.log('parentCategoryId: '+parentCategoryId);
-    let parentCategory = await categoryService.getCategoryById(parentCategoryId)
-    parentCategory.children.push(category)
-    parentCategory.save()
+  let parentCategory = await categoryService.getCategoryById(parentCategoryId)
+  parentCategory.children.push(category)
+  await parentCategory.save()
   
-  res.status(httpStatus.CREATED).send(category);
+  // calculate value for newCategory
+  console.log(JSON.stringify(parentCategory));
+  const value = parentCategory.value + parentCategory.children.length * (10**(Math.floor(Math.log10(parentCategory.value))-3*category.ancestors.length))
+  categoryService.updateCategoryById(category.id, {value})
 });
 
 //TODO: modify filter

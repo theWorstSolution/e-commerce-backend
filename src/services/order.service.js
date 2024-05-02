@@ -2,9 +2,22 @@ const httpStatus = require('http-status');
 const { Order } = require('../models');
 const ApiError = require('../utils/ApiError');
 
+/**
+ * 
+ * @param {String} body.user: userId
+ * @param {String} body.product: productId
+ * @param {Number} body.amount
+ * @param {Number} body.totalPrice
+ * @param {Number} body.totalCost
+ * @returns 
+ */
 const createOrder = async (body) => {
     return Order.create(body);
   };
+
+const createOrders = async (bodies) =>{
+  return Order.insertMany(bodies)
+}
 
   const queryOrders = async (filter, options) => {
     const orders = await Order.paginate(filter, options);
@@ -30,5 +43,6 @@ const createOrder = async (body) => {
     queryOrders,
     getOrderById,
     updateOrderById,
+    createOrders
   };
   

@@ -15,7 +15,8 @@ if(!rootCategoryId){
     name: 'root',
     ancestors:[],
     children:[],
-    products:[]
+    products:[],
+    value: 10**13
   })
   rootCategory.save((err,savedRoot)=>{
     console.log('Need to write ROOT_CATEGORY_ID in .env and restart:')

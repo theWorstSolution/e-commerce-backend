@@ -27,7 +27,8 @@ const categorySchema = new mongoose.Schema({
     products: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product' // Reference to the Product model
-    }]
+    }],
+    value: Number
   });
   // add plugin that converts mongoose to json
 categorySchema.plugin(toJSON);

@@ -37,7 +37,10 @@ const userSchema = mongoose.Schema(
       district: String,
       ward: String
     },
-    
+    cart: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product' // Reference to the Category model
+    }]
   },
   {
     timestamps: true,
