@@ -40,7 +40,11 @@ const userSchema = mongoose.Schema(
     cart: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product' // Reference to the Category model
-    }]
+    }],
+    recommendedProducts: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product' // Reference to the Category model
+    }],
   },
   {
     timestamps: true,

@@ -34,7 +34,18 @@ function calcDistance(dict1,dict2){
             res += (dict1[key] - dict2[key])**2
         }
     }
-    return res == 0 ? 0.001 : res
+    return res == 0 ? 0.0000001 : res
+}
+
+function genRandomArrayWithSum(sum, length){
+    const res = new Array(length)
+    let remain = sum;
+    for(let i =0;i<length-1;i++){
+        res[i] = remain*Math.random()*2/(length-i)
+        remain -= res[i]
+    }
+    res[length-1] = remain
+    return res
 }
 
 module.exports = {
@@ -42,5 +53,6 @@ module.exports = {
     multiplyDict,
     // calcDictDiff,
     addDict,
-    calcDistance
+    calcDistance,
+    genRandomArrayWithSum
 }

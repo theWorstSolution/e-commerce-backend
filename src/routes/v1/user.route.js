@@ -8,6 +8,10 @@ const router = express.Router();
 
 router.route('/').get(userController.getUsers)
 
+
+router.route('/user/recommended-products').post(authRequire, userController.genRecommendedProducts)
+  .get(authRequire, userController.getRecommendedProducts)
+  
 router
   .route('/user/:uid')
   // .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
