@@ -3,9 +3,10 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { orderService, userService, productService } = require('../services');
-const { Order } = require('../models');
+const { Order, User } = require('../models');
 const {productController} = require('../controllers')
-const qs = require('qs')
+const qs = require('qs');
+const notiSubcribers = require('../globalVars');
 
 /* check chỉ cho user tạo order với id của họ */
 /**
@@ -29,7 +30,24 @@ const createOrder = catchAsync(async (req, res) => {
   product.save()
   
   res.status(httpStatus.CREATED).send(order);
+  
+  //
   productController.genRecommendedProducts(req.body.user)
+
+  // emit notification to admin
+  const admins = await User.find({role:'admin'})
+  const notification = {type: 'newOrder', orderId: order.id, timeCreated: new Date()}
+  for(let admin of admins){
+    // save noti to db
+    admin.notifications.push(notification)
+    admin.save()
+    
+    // send noti to admin subcribers
+    if(notiSubcribers[admin.id]){
+      notiSubcribers[admin.id].write(notification)
+    }
+  } 
+
 });
 
 /**

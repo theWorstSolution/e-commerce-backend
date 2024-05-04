@@ -45,6 +45,7 @@ const userSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product' // Reference to the Category model
     }],
+    notifications: []
   },
   {
     timestamps: true,
