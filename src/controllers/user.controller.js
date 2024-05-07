@@ -5,7 +5,8 @@ const catchAsync = require('../utils/catchAsync');
 const { userService, productService } = require('../services');
 const qs = require('qs');
 const { Product, Order } = require('../models');
-const matrixUlti = require('../utils/matrixUlti')
+const matrixUlti = require('../utils/matrixUlti');
+const notiSubcribers = require('../globalVars');
 
 
 const createUser = catchAsync(async (req, res) => {
@@ -57,6 +58,28 @@ const deleteUser = catchAsync(async (req, res) => {
   await userService.deleteUserById(req.params.userId);
   res.status(httpStatus.NO_CONTENT).send();
 });
+
+
+
+async function subcribeNotifications(req, res){
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader("Access-Control-Allow-Origin", '*');
+  res.setHeader('Content-Encoding', 'none')
+  // Send initial connection confirmation
+  res.write('data: Connected\n\n');
+
+  // Add client to list of subscribers
+  notiSubcribers[req.auth.uid] = res;
+
+  // Handle client disconnect
+  req.on('close', () => {
+      clients.splice(clients.indexOf(res), 1);
+  });
+}
+
 
 /**
  * 
@@ -353,5 +376,6 @@ module.exports = {
   updateUser,
   deleteUser,
   genRecommendedProducts,
-  getRecommendedProducts
+  getRecommendedProducts,
+  subcribeNotifications
 };

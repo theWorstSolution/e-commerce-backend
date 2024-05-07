@@ -45,9 +45,6 @@ const subcribeNotifications = function (req, res) {
     req.on('close', () => {
         clients.splice(clients.indexOf(res), 1);
     });
-    // setInterval(function() {
-    //     res.write('data: hello\n\n');
-    //   }, 1000);
 }
 
 

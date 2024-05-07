@@ -50,6 +50,7 @@ const { userService } = require("../services");
 
 const authRequire = catchAsync(async (req, res, next) => {
   const token = req.headers["x-access-token"];
+  console.log(token);
   const user = await getAuth(firebaseApp).verifyIdToken(token)
   req.auth = user;
   console.log(req.auth);
