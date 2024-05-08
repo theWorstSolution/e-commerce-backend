@@ -8,11 +8,14 @@ const router = express.Router();
 
 router.route('/').get(userController.getUsers)
 
-router.route('/user/subcribe-notifications').get(authRequire,userController.subcribeNotifications)
+router.route('/user/:uid/subcribe-notifications').get(userController.subcribeNotifications)
 
 
 router.route('/user/recommended-products').post(authRequire, userController.genRecommendedProducts)
   .get(authRequire, userController.getRecommendedProducts)
+
+
+router.route('/user').post(authRequire,userController.createUser) 
   
 router
   .route('/user/:uid')

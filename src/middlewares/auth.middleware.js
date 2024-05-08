@@ -53,7 +53,8 @@ const authRequire = catchAsync(async (req, res, next) => {
   console.log(token);
   const user = await getAuth(firebaseApp).verifyIdToken(token)
   req.auth = user;
-  console.log(req.auth);
+  // console.log('firebase user:');
+  // console.log(req.auth);
   /*  {
 name: 'Thành Nguyễn Chi',
 picture: 'https://lh3.googleusercontent.com/a/ACg8ocIdKHNTmMi_3aqnTyYwXiASv_zDX4i4Vi4NPkxl9s8=s96-c',
@@ -70,7 +71,8 @@ firebase: { identities: [Object], sign_in_provider: 'google.com' },
 uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
 } */
   const dbUser = await userService.getUserById(user.uid)
-
+//   console.log('dbuser:::');
+// console.log(dbUser);
   req.auth.role = dbUser ? dbUser.role : 'user';
   
   

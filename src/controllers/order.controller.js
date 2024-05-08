@@ -4,7 +4,7 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { orderService, userService, productService } = require('../services');
 const { Order, User } = require('../models');
-const {productController} = require('../controllers')
+const {userController} = require('../controllers')
 const qs = require('qs');
 const notiSubcribers = require('../globalVars');
 
@@ -32,7 +32,7 @@ const createOrder = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(order);
   
   //
-  productController.genRecommendedProducts(req.body.user)
+  // userController.genRecommendedProducts(req.body.user)
 
   // emit notification to admin
   const admins = await User.find({role:'admin'})
@@ -44,7 +44,7 @@ const createOrder = catchAsync(async (req, res) => {
     
     // send noti to admin subcribers
     if(notiSubcribers[admin.id]){
-      notiSubcribers[admin.id].write(notification)
+      notiSubcribers[admin.id].write('data: ' + JSON.stringify(notification)+'\n\n')
     }
   } 
 

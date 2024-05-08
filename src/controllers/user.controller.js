@@ -9,8 +9,12 @@ const matrixUlti = require('../utils/matrixUlti');
 const notiSubcribers = require('../globalVars');
 
 
+/**
+ * no need params, use access token in header
+ */
 const createUser = catchAsync(async (req, res) => {
-  const user = await userService.createUser(req.body);
+  const authUser = req.auth
+  const user = await userService.createUser(authUser);
   res.status(httpStatus.CREATED).send(user);
 });
 
@@ -44,7 +48,8 @@ const getUser = catchAsync(async (req, res) => {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
     }
   }
-  // console.log(user)
+  console.log('--++');
+  console.log(user)
   res.send(user);
   
 });
@@ -62,6 +67,7 @@ const deleteUser = catchAsync(async (req, res) => {
 
 
 async function subcribeNotifications(req, res){
+  const {uid} = req.params
   // Set headers for SSE
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -69,14 +75,19 @@ async function subcribeNotifications(req, res){
   res.setHeader("Access-Control-Allow-Origin", '*');
   res.setHeader('Content-Encoding', 'none')
   // Send initial connection confirmation
-  res.write('data: Connected\n\n');
+  const user = await userService.getUserById(uid) 
+
+const allNotisMess = {type: 'allNotis', allNotis: user.notifications} 
+
+res.write('data: ' + JSON.stringify(allNotisMess)+ '\n\n') 
+  // res.write('data: Connected\n\n');
 
   // Add client to list of subscribers
-  notiSubcribers[req.auth.uid] = res;
+  notiSubcribers[uid] = res;
 
   // Handle client disconnect
   req.on('close', () => {
-      clients.splice(clients.indexOf(res), 1);
+      delete notiSubcribers[uid]
   });
 }
 
@@ -143,9 +154,9 @@ async function genRecommendedProducts(req,res){
   }
   // asign each boughtProduct to a separate k
   let initI = 0
-  const initMembership = 0.8
+  const initMembership = 0.95
   for(let boughtProduct of boughtProducts){
-    u_[initI][boughtProduct] = 0.8
+    u_[initI][boughtProduct] = initMembership
     initI += 1
   }
 
@@ -332,12 +343,12 @@ async function genRecommendedProducts(req,res){
   const recommendedProducts = []  // [{id, detail:{name, membership}},...]
   for(let productId of boughtProducts){
     const belongedTo = product_cluster[productId]
-    if(u[belongedTo][productId]<initMembership+0.1){
+    if(u[belongedTo][productId]<initMembership+0.01){
       continue
     }
     console.log('push in recommended products');
     for(let prdct in cluster_products[belongedTo]){ // prdct = productId
-      if(cluster_products[belongedTo][prdct].membership>0.8){
+      if(cluster_products[belongedTo][prdct].membership>initMembership){
         recommendedProducts.push({id: prdct, detail:cluster_products[belongedTo][prdct]})
         console.log({id: prdct, detail:cluster_products[belongedTo][prdct]});
       }
