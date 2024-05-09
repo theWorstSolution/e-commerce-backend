@@ -30,13 +30,13 @@ const createOrder = catchAsync(async (req, res) => {
   product.save()
   
   res.status(httpStatus.CREATED).send(order);
-  
+
   //
   // userController.genRecommendedProducts(req.body.user)
 
   // emit notification to admin
   const admins = await User.find({role:'admin'})
-  const notification = {type: 'newOrder', orderId: order.id, timeCreated: new Date()}
+  const notification = {type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, userId: req.auth.uid, productName: product.name, productId:product.id, amount: req.body.amount}
   for(let admin of admins){
     // save noti to db
     admin.notifications.push(notification)

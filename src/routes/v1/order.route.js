@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.route('').get(orderController.getOrders).post(orderController.createOrders)
 router.route('/order/:id').get(orderController.getOrder).patch(orderController.updateOrder)
-router.route('/order').post(orderController.createOrder)
+router.route('/order').post(authRequire,orderController.createOrder)
 
 module.exports = router;
