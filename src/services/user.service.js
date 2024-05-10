@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { func } = require('joi');
 
 /**
  * Create a user
@@ -77,6 +78,50 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+/**
+ * 
+ * @param {String of uid || instance of User} user 
+ * @param {Object} noti 
+ */
+async function createNewNoti(user,noti){
+  // case user == uid
+  if(typeof user == 'string'){
+    user = await getUserById(user)
+  }
+
+  user.notifications.unshift(noti)
+  user.save()
+  
+}
+
+/**
+ * if beforeNoti = null, return 10 latest notis
+ * if no notil, return {resNotis:null, hasNext:false}
+ * @param {String of notiId} beforeNoti 
+ * @param {String} uid 
+ * @returns 10 more notis and hasNext
+ */
+async function fetchNotis(uid,beforeNoti){
+	const user = await getUserById(uid)
+  const resNotis = []
+  let hasNext = true
+  let startFetch = false
+
+  if(!beforeNoti){startFetch=true}
+
+	for(let noti of user.notifications){
+		if(resNotis.length==10){break}
+
+		if(startFetch){resNotis.push(noti)}
+		else if(noti.id == beforeNoti){startFetch=true}
+	}
+
+  if(resNotis.length==0){return{resNotis:null, hasNext:false}}
+
+	if(resNotis[resNotis.length-1]==user.notifications[user.notifications.length-1]){ hasNext = false}
+	return {resNotis, hasNext}
+}
+
 module.exports = {
   createUser,
   queryUsers,
@@ -84,4 +129,6 @@ module.exports = {
   getUserByEmail,
   updateUserById,
   deleteUserById,
+  createNewNoti,
+  fetchNotis
 };

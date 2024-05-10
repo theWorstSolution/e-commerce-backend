@@ -7,6 +7,7 @@ const { Order, User } = require('../models');
 const {userController} = require('../controllers')
 const qs = require('qs');
 const notiSubcribers = require('../globalVars');
+const { createNewNoti } = require('../services/user.service');
 
 /* check chỉ cho user tạo order với id của họ */
 /**
@@ -36,11 +37,11 @@ const createOrder = catchAsync(async (req, res) => {
 
   // emit notification to admin
   const admins = await User.find({role:'admin'})
-  const notification = {type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, userId: req.auth.uid, productName: product.name, productId:product.id, amount: req.body.amount}
+  const notification = {type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, 
+    userId: req.auth.uid, productName: product.name, productId:product.id, amount: req.body.amount, hasSeen: false}
   for(let admin of admins){
     // save noti to db
-    admin.notifications.push(notification)
-    admin.save()
+    createNewNoti(admin,notification)
     
     // send noti to admin subcribers
     if(notiSubcribers[admin.id]){

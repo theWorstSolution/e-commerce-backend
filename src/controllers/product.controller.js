@@ -24,8 +24,8 @@ const getProducts = catchAsync(async (req, res) => {
   const filter = query.filter
   const options = {sortBy: 'name:asc',...query.options}
   // const options = {sortBy: null}
-  console.log(JSON.stringify(filter));
-  console.log(options);
+  // console.log(JSON.stringify(filter));
+  // console.log(options);
   const result = await productService.queryProducts(filter, options);
   // const populatedDocs = await Product.populate(result.results,{ path: 'categories', select: 'name' })
   // result.results = populatedDocs;

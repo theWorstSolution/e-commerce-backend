@@ -11,13 +11,13 @@ const createCategory = catchAsync(async (req, res) => {
 
   // append newCategory to children of parentCategory
   let parentCategoryId = req.body.ancestors[req.body.ancestors.length-1]
-  console.log('parentCategoryId: '+parentCategoryId);
+  // console.log('parentCategoryId: '+parentCategoryId);
   let parentCategory = await categoryService.getCategoryById(parentCategoryId)
   parentCategory.children.push(category)
   await parentCategory.save()
   
   // calculate value for newCategory
-  console.log(JSON.stringify(parentCategory));
+  // console.log(JSON.stringify(parentCategory));
   const value = parentCategory.value + parentCategory.children.length * (10**(Math.floor(Math.log10(parentCategory.value))-3*category.ancestors.length))
   categoryService.updateCategoryById(category.id, {value})
 });
@@ -27,8 +27,8 @@ const getCategories = catchAsync(async (req, res) => {
   const query = qs.parse(req.url.split('?')[1]);
   const filter = query.filter
   const options = query.options
-  console.log(JSON.stringify(filter))
-  console.log(JSON.stringify(options))
+  // console.log(JSON.stringify(filter))
+  // console.log(JSON.stringify(options))
   const result = await categoryService.queryCategories(filter, options);
   // const populatedDocs = await Product.populate(result.results,{ path: 'categories', select: 'name' })
   // result.results = populatedDocs;
@@ -43,7 +43,7 @@ const getCategory = catchAsync(async (req, res) => {
 
 const getChildrenOfCategory = catchAsync(async (req,res)=>{
   let {id} = req.params
-  console.log(id);
+  // console.log(id);
   const  parentCategory = await categoryService.getCategoryById(id);
   // console.log(JSON.stringify(parentCategory));
   let populatedParentCat = await parentCategory.populate('children').execPopulate()

@@ -28,7 +28,6 @@ const paginate = (schema) => {
         sortingCriteria.push((order === 'desc' ? '-' : '') + key);
       });
       sort = sortingCriteria.join(' ');
-      console.log(sort);
     } else {
       sort = 'createdAt';
     }
