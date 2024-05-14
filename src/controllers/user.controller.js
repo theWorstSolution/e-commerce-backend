@@ -76,8 +76,8 @@ async function subcribeNotifications(req, res) {
   res.setHeader('Content-Encoding', 'none')
 
 
-  const { resNotis, hasNext } = await userService.fetchNotis(uid)
-  const fetchNotisRes = { type: 'fetchNotis', resNotis, hasNext }
+  const { resNotis, hasMore } = await userService.fetchNotis(uid)
+  const fetchNotisRes = { type: 'fetchNotis', resNotis, hasMore }
   res.write('data: ' + JSON.stringify(fetchNotisRes) + '\n\n')
 
   // send number of noti that hasn't been seen 
@@ -101,8 +101,13 @@ async function subcribeNotifications(req, res) {
 
 
 async function fetchNotis(req, res) {
-  const { resNotis, hasNext } = await userService.fetchNotis(uid)
-  const fetchNotisRes = { type: 'fetchNotis', resNotis, hasNext }
+  console.log(req.url);
+  const query = qs.parse(req.url.split('?')[1]);
+  console.log(query);
+  const beforeNoti = query.beforeNoti
+  console.log(beforeNoti);
+  const { resNotis, hasMore } = await userService.fetchNotis(req.auth.uid,beforeNoti)
+  const fetchNotisRes = { type: 'fetchNotis', resNotis, hasMore }
   res.send(fetchNotisRes)
 }
 

@@ -4,7 +4,7 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { orderService, userService, productService } = require('../services');
 const { Order, User } = require('../models');
-const {userController} = require('../controllers')
+const { userController } = require('../controllers')
 const qs = require('qs');
 const notiSubcribers = require('../globalVars');
 const { createNewNoti } = require('../services/user.service');
@@ -26,28 +26,30 @@ const createOrder = catchAsync(async (req, res) => {
   req.body.totalPrice = product.price * req.body.amount
   req.body.totalCost = req.body.totalPrice
   const order = await orderService.createOrder(req.body);
-  
+
   product.soldAmount += req.body.amount
   product.save()
-  
+
   res.status(httpStatus.CREATED).send(order);
 
   //
   // userController.genRecommendedProducts(req.body.user)
 
   // emit notification to admin
-  const admins = await User.find({role:'admin'})
-  const notification = {type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, 
-    userId: req.auth.uid, productName: product.name, productId:product.id, amount: req.body.amount, hasSeen: false}
-  for(let admin of admins){
+  const admins = await User.find({ role: 'admin' })
+  const notification = {
+    type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name,
+    userId: req.auth.uid, productName: product.name, productId: product.id, amount: req.body.amount, hasSeen: false
+  }
+  for (let admin of admins) {
     // save noti to db
-    createNewNoti(admin,notification)
-    
+    createNewNoti(admin, notification)
+
     // send noti to admin subcribers
-    if(notiSubcribers[admin.id]){
-      notiSubcribers[admin.id].write('data: ' + JSON.stringify(notification)+'\n\n')
+    if (notiSubcribers[admin.id]) {
+      notiSubcribers[admin.id].write('data: ' + JSON.stringify(notification) + '\n\n')
     }
-  } 
+  }
 
 });
 
@@ -58,22 +60,45 @@ const createOrder = catchAsync(async (req, res) => {
  * @param{Number} req.body.buyList[].amount
  */
 const createOrders = catchAsync(async (req, res) => {
-  const bodies = await Promise.all(req.body.buyList.map(async(order)=>{
+  const bodies = await Promise.all(req.body.buyList.map(async (order) => {
     const user = req.body.userId
     const product = order.productId
     const amount = order.amount
     const totalPrice = (await productService.getProductById(order.productId)).price * order.amount
     const totalCost = totalPrice
-    return {user, product, amount, totalPrice, totalCost}
+    return { user, product, amount, totalPrice, totalCost }
   }))
   const results = await orderService.createOrders(bodies);
   res.status(httpStatus.CREATED).send(results);
-  req.body.buyList.map(async(order)=>{
+  req.body.buyList.map(async (order) => {
     const product = await productService.getProductById(order.productId)
     product.soldAmount += order.amount
     product.save()
   })
+
+  // save noti for all admins and send noti to online admins
+  const newOrders = []
+  for (let order of results) {
+    const product = await productService.getProductById(order.product)
+    const newOrder = { type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, userId: req.auth.uid, productName: product.name, productId: product.id, amount: order.amount, hasSeen: false }
+  }
+  const admins = await User.find({ role: 'admin' })
+  for (let admin of admins) {
+    for (let notification of newOrders) {
+      // save noti to db
+      createNewNoti(admin, notification)
+
+      // send noti to admin subcribers
+      if (notiSubcribers[admin.id]) {
+        notiSubcribers[admin.id].write('data: ' + JSON.stringify(notification) + '\n\n')
+      }
+
+    }
+  }
+
+
   productController.genRecommendedProducts(req.body.userId)
+
 });
 
 
@@ -82,7 +107,7 @@ const createOrders = catchAsync(async (req, res) => {
 const getOrders = catchAsync(async (req, res) => {
   const query = qs.parse(req.url.split('?')[1], { depth: 10 });
   const filter = query.filter
-  const options = {sortBy:null ,...query.options}
+  const options = { sortBy: null, ...query.options }
   console.log(JSON.stringify(options));
   console.log(JSON.stringify(filter));
   const result = await orderService.queryOrders(filter, options);
@@ -92,16 +117,43 @@ const getOrders = catchAsync(async (req, res) => {
 });
 
 const getOrder = catchAsync(async (req, res) => {
-  let {id} = req.params
+  let { id } = req.params
   var order = await orderService.getOrderById(id);
-  order = await order.populate('user','name').populate('product','name').execPopulate()
+  order = await order.populate('user', 'name').populate('product', 'name').execPopulate()
   res.send(order);
 });
 
 const updateOrder = catchAsync(async (req, res) => {
   // TODO: check quyền admin
+  const oldOrder = await orderService.getOrderById(req.params.id)
+  const oldStatus = oldOrder.status
+
   const order = await orderService.updateOrderById(req.params.id, req.body);
   res.send(order);
+
+  // notify user
+  
+  const newStatus = req.body.status
+  console.log(oldStatus);
+  console.log(newStatus);
+  if (newStatus && oldStatus != newStatus) {
+    console.log('here');
+    const product = await productService.getProductById(oldOrder.product)
+
+    const changeOrderStatusNoti = {
+      type: 'ChangeOrderStatusNoti', orderId: req.params.id, timeCreated: new Date(),
+      productName: product.name, productId: product.id, amount: oldOrder.amount, hasSeen: false, oldStatus, 
+      newStatus
+    }
+    // save noti to db
+    createNewNoti(oldOrder.user, changeOrderStatusNoti)
+    // send to user if online
+    if (notiSubcribers[oldOrder.user]) {
+      notiSubcribers[oldOrder.user].write('data: ' + JSON.stringify(changeOrderStatusNoti) + '\n\n')
+    }
+
+  }
+
 });
 
 

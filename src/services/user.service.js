@@ -88,7 +88,7 @@ async function createNewNoti(user,noti){
   if(typeof user == 'string'){
     user = await getUserById(user)
   }
-
+  noti.id = user.notifications.length
   user.notifications.unshift(noti)
   user.save()
   
@@ -96,15 +96,15 @@ async function createNewNoti(user,noti){
 
 /**
  * if beforeNoti = null, return 10 latest notis
- * if no notil, return {resNotis:null, hasNext:false}
+ * if no notil, return {resNotis:null, hasMore:false}
  * @param {String of notiId} beforeNoti 
  * @param {String} uid 
- * @returns 10 more notis and hasNext
+ * @returns 10 more notis and hasMore
  */
 async function fetchNotis(uid,beforeNoti){
 	const user = await getUserById(uid)
   const resNotis = []
-  let hasNext = true
+  let hasMore = true
   let startFetch = false
 
   if(!beforeNoti){startFetch=true}
@@ -115,11 +115,9 @@ async function fetchNotis(uid,beforeNoti){
 		if(startFetch){resNotis.push(noti)}
 		else if(noti.id == beforeNoti){startFetch=true}
 	}
-
-  if(resNotis.length==0){return{resNotis:null, hasNext:false}}
-
-	if(resNotis[resNotis.length-1]==user.notifications[user.notifications.length-1]){ hasNext = false}
-	return {resNotis, hasNext}
+  if(resNotis.length==0){return{resNotis:null, hasMore:false}}
+	if(resNotis[resNotis.length-1]==user.notifications[user.notifications.length-1]){ hasMore = false}
+	return {resNotis, hasMore}
 }
 
 module.exports = {
