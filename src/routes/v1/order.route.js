@@ -5,7 +5,7 @@ const userValidation = require('../../validations/user.validation');
 const orderController = require('../../controllers/order.controller');
 const router = express.Router();
 
-router.route('').get(orderController.getOrders).post(orderController.createOrders)
+router.route('').get(orderController.getOrders).post(authRequire,orderController.createOrders)
 router.route('/order/:id').get(orderController.getOrder).patch(orderController.updateOrder)
 router.route('/order').post(authRequire,orderController.createOrder)
 

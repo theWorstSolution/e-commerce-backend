@@ -60,8 +60,15 @@ router.get('/trigger-notification', (req, res) => {
     res.send('Notification triggered');
 });
 
+
+function testHasBought(req,res){
+    console.log(userService.hasBought(req.body.uid, req.body.productId));
+    res.send()
+}
+
 // router.post('', authRequire, handler);
 router.get('/subcribe-notifications', subcribeNotifications);
 router.get('/foo', (req, res) => { res.send('hey hey') });
+router.post('/has-bought',testHasBought)
 
 module.exports = router;

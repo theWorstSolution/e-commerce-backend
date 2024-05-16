@@ -35,6 +35,8 @@ const createOrder = catchAsync(async (req, res) => {
   //
   // userController.genRecommendedProducts(req.body.user)
 
+
+
   // emit notification to admin
   const admins = await User.find({ role: 'admin' })
   const notification = {
@@ -43,7 +45,7 @@ const createOrder = catchAsync(async (req, res) => {
   }
   for (let admin of admins) {
     // save noti to db
-    createNewNoti(admin, notification)
+    await createNewNoti(admin, notification)
 
     // send noti to admin subcribers
     if (notiSubcribers[admin.id]) {
@@ -51,17 +53,27 @@ const createOrder = catchAsync(async (req, res) => {
     }
   }
 
+
+  // update orders and boughtProducts of user
+  const user = await userService.getUserById(req.auth.uid)
+	user.orders.push(order)
+	
+	const hasBought = await userService.hasBought(user,order.product)
+    if(!hasBought){
+		user.boughtProducts.push(product.id)
+	}
+	user.save()
+
 });
 
 /**
- * @param{String} req.body.userId
  * @param{Array<Object>} req.body.buyList
  * @param{String} req.body.buyList[].productId
  * @param{Number} req.body.buyList[].amount
  */
 const createOrders = catchAsync(async (req, res) => {
   const bodies = await Promise.all(req.body.buyList.map(async (order) => {
-    const user = req.body.userId
+    const user = req.auth.uid
     const product = order.productId
     const amount = order.amount
     const totalPrice = (await productService.getProductById(order.productId)).price * order.amount
@@ -70,23 +82,45 @@ const createOrders = catchAsync(async (req, res) => {
   }))
   const results = await orderService.createOrders(bodies);
   res.status(httpStatus.CREATED).send(results);
+
+
+
+  // update orders and boughtProducts of user
+  const user = await userService.getUserById(req.auth.uid)
+  for(let order of results){
+    user.orders.push(order.id)
+
+    const hasBought = await userService.hasBought(user,order.product)
+    console.log(hasBought);
+    if(!hasBought){
+      user.boughtProducts.push(order.product)
+    }
+  }
+  await user.save()
+
+
+
+  // update product.soldAmount
   req.body.buyList.map(async (order) => {
     const product = await productService.getProductById(order.productId)
     product.soldAmount += order.amount
     product.save()
   })
 
+
+
   // save noti for all admins and send noti to online admins
   const newOrders = []
   for (let order of results) {
     const product = await productService.getProductById(order.product)
     const newOrder = { type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, userId: req.auth.uid, productName: product.name, productId: product.id, amount: order.amount, hasSeen: false }
+    newOrders.push(newOrder)
   }
   const admins = await User.find({ role: 'admin' })
   for (let admin of admins) {
     for (let notification of newOrders) {
       // save noti to db
-      createNewNoti(admin, notification)
+      await createNewNoti(admin, notification)
 
       // send noti to admin subcribers
       if (notiSubcribers[admin.id]) {
@@ -97,7 +131,8 @@ const createOrders = catchAsync(async (req, res) => {
   }
 
 
-  productController.genRecommendedProducts(req.body.userId)
+
+  // userController.genRecommendedProducts(req.body.user)
 
 });
 

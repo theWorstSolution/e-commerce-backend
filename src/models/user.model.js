@@ -45,11 +45,20 @@ const userSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product' // Reference to the Category model
     }],
-    notifications: []
+    notifications: [],
+    orders: [{
+	    type: mongoose.Schema.Types.ObjectId,
+	    ref: 'Order' // Reference to the Review model
+	  }],
+	boughtProducts : [{
+	    type: mongoose.Schema.Types.ObjectId,
+	    ref: 'Product' // Reference to the Review model
+  }]
   },
   {
     timestamps: true,
-  }
+  },
+  
 );
 
 // add plugin that converts mongoose to json

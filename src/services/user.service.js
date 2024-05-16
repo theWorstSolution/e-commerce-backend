@@ -90,7 +90,7 @@ async function createNewNoti(user,noti){
   }
   noti.id = user.notifications.length
   user.notifications.unshift(noti)
-  user.save()
+  await user.save()
   
 }
 
@@ -120,6 +120,27 @@ async function fetchNotis(uid,beforeNoti){
 	return {resNotis, hasMore}
 }
 
+/**
+ * 
+ * @param {User || uid String} user 
+ * @param {String} productId 
+ * @returns{Promise<Boolean>}
+ */
+async function hasBought(user, productId){
+  if(!(user instanceof User)){
+    user = await getUserById(user)
+  }
+  let hasBought = false
+	for(let boughtProduct of user.boughtProducts){
+		if(boughtProduct.toString() == productId.toString()){
+			hasBought = true
+			break
+			}
+	}
+  return hasBought
+}
+
+
 module.exports = {
   createUser,
   queryUsers,
@@ -128,5 +149,6 @@ module.exports = {
   updateUserById,
   deleteUserById,
   createNewNoti,
-  fetchNotis
+  fetchNotis,
+  hasBought
 };
