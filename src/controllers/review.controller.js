@@ -65,8 +65,43 @@ async function updateReview(req, res){
 }
 
 
+async function deleteReview(req,res){
+	const {reviewId} = req.params
+	const review = await reviewService.getReviewById(reviewId)
+	//chỉ cho update rating và content, và phải cùng user
+	if(req.auth.uid.toString() != review.user.toString()){
+		res.send('permission deny')
+		return
+	} 
+	
+	// delete review in user
+	const user = await userService.getUserById(req.auth.uid)
+	for(let [idx,review] of user.reviews.entries()){
+		if(review.toString() == reviewId){
+			user.reviews.splice(idx,1)
+			break
+		}
+	}
+	await user.save()
+	
+    //delete review in product
+	const product = await productService.getProductById(review.product)
+	for(let [idx,review] of product.reviews.entries()){
+		if(review.toString() == reviewId){
+			product.reviews.splice(idx,1)
+			break
+		}
+	}
+	await product.save()
+
+	const result = await review.remove()
+	res.send(result)
+}
+
+
 module.exports = {
     createReview,
     getReviews,
-    updateReview
+    updateReview,
+    deleteReview
 };
