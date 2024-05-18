@@ -43,16 +43,20 @@ const userSchema = mongoose.Schema(
     }],
     recommendedProducts: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product' // Reference to the Category model
+      ref: 'Product' 
     }],
     notifications: [],
     orders: [{
 	    type: mongoose.Schema.Types.ObjectId,
-	    ref: 'Order' // Reference to the Review model
+	    ref: 'Order' 
 	  }],
 	boughtProducts : [{
 	    type: mongoose.Schema.Types.ObjectId,
-	    ref: 'Product' // Reference to the Review model
+	    ref: 'Product' 
+  }],
+  reviews: [{
+    type: mongoose.Schema.Types.ObjectId,
+	    ref: 'Review'
   }]
   },
   {

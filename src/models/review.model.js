@@ -30,11 +30,6 @@ const reviewSchema = new mongoose.Schema({
     timeCreated: {
       type: Date,
       default: Date.now
-    },
-    status: {
-      type: Number,
-      enum: [0, 1], // 0: invisible, 1: visible
-      default: 1 // Default to visible
     }
   });
   reviewSchema.plugin(toJSON);
