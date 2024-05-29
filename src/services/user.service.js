@@ -90,8 +90,7 @@ async function createNewNoti(user,noti){
   }
   noti.id = user.notifications.length
   user.notifications.unshift(noti)
-  await user.save()
-  
+  return user.save()
 }
 
 /**
