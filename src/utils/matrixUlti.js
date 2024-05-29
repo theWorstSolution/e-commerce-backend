@@ -6,6 +6,9 @@ function deepCopy2DArray(arr) {
 function multiplyDict(dict, multiplyBy){
     const res = {}
     for(let key in dict){
+        if(key=='id' || key=='name' || key=='categories'){
+            continue
+        }
         res[key] = dict[key]*multiplyBy
     }
     return res
@@ -22,6 +25,9 @@ function multiplyDict(dict, multiplyBy){
 function addDict(dict1, dict2){
     let res = {};
     for(let key in dict1){
+        if(key=='id' || key=='name' || key=='categories'){
+            continue
+        }
         res[key] = dict1[key] + dict2[key]
     }
     return res
@@ -30,9 +36,11 @@ function addDict(dict1, dict2){
 function calcDistance(dict1,dict2){
     let res = 0;
     for(let key in dict1){
-        if(key!='id' && key!='name'){
-            res += (dict1[key] - dict2[key])**2
+        if(key=='id' || key=='name' || key=='categories'){
+            continue
         }
+        res += (dict1[key] - dict2[key])**2
+
     }
     return res == 0 ? 0.0000001 : res
 }
