@@ -31,7 +31,10 @@ const reviewSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
-  });
+  },
+  {
+    timestamps: true,
+  },);
   reviewSchema.plugin(toJSON);
   reviewSchema.plugin(paginate);
   // Create the Review model using the schema

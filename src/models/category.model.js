@@ -29,7 +29,10 @@ const categorySchema = new mongoose.Schema({
       ref: 'Product' // Reference to the Product model
     }],
     value: Number
-  });
+  },
+  {
+    timestamps: true,
+  },);
   // add plugin that converts mongoose to json
 categorySchema.plugin(toJSON);
 categorySchema.plugin(paginate);

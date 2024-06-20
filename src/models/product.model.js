@@ -44,7 +44,7 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review' // Reference to the Review model
   }],
-  rating:{
+  rating: {
     type: Number,
     default: 3
   },
@@ -52,8 +52,12 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0
   }
-});
-productSchema.pre('update', function(next) {
+},
+  {
+    timestamps: true,
+  }
+);
+productSchema.pre('update', function (next) {
   //TODO: update rating based on reviews
   // this.totalCost = this.totalPrice + this.deliveryFee;
   next();

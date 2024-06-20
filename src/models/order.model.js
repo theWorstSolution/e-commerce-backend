@@ -36,7 +36,10 @@ const orderSchema = new mongoose.Schema({
       enum: [0,1],
       default: 1
     }
-  });
+  },
+  {
+    timestamps: true,
+  },);
 // Middleware to calculate totalCost before saving
 // orderSchema.pre('save', function(next) {
 //   this.totalCost = this.totalPrice + this.deliveryFee;

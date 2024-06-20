@@ -162,21 +162,26 @@ async function genRecommendedProducts(req, res) {
     }
   }
   products = products.map((product) => {
+    // nhân với hệ số nếu thuộc tính quan trọng
     return {
       id: product.id,
       name: product.name,
       categories: product.categories,
-
-      price: (product.price - minPrice) * 10 / (maxPrice - minPrice),
+      price: (product.price - minPrice) * 2 / (maxPrice - minPrice),
       soldAmount: (product.soldAmount-minSoldAmount)/(maxSoldAmount-minSoldAmount),
       rating: product.rating / 5,
-      categoryValue: 10 * (Math.log10(product.categories[product.categories.length - 1].id.value) - Math.log10(minCategoryValue)) / (Math.log10(maxCategoryValue) - Math.log10(minCategoryValue))
+      categoryValue: 4 * (Math.log10(product.categories[product.categories.length - 1].id.value) - Math.log10(minCategoryValue)) / (Math.log10(maxCategoryValue) - Math.log10(minCategoryValue))
     }
   })
 
 
 
-  const boughtProducts = await Order.find({ user: uid }).distinct('product')  // ['id1','id2',...]
+  let boughtProducts = await Order.find({ user: uid }).sort({ createdAt: -1 }).distinct('product');  // ['id1','id2',...]
+  if(boughtProducts.length < 5){
+
+  }
+  // boughtProducts = boughtProducts.slice(0,5)
+  
   // console.log('bought product&&&&');
   // console.log(JSON.stringify(boughtProducts,null,2));
   // console.log('^^^^products after normalize');
@@ -214,9 +219,11 @@ async function genRecommendedProducts(req, res) {
     }
   }
 
+  const initU = matrixUlti.deepCopy2DArray(u)
 
   const eps = 0.05
   const m = 2
+  const d_max = 1
   let prevU = matrixUlti.deepCopy2DArray(u)
   // v: centers // Example [{price, categoryValue, soldAmount},...]
   let v = new Array(maxI)
@@ -346,12 +353,12 @@ async function genRecommendedProducts(req, res) {
 
   // console.log('after iterate================');
   // console.log(JSON.stringify(u,null,2));
-  for (let [idx, cluster] of u.entries()) {
-    console.log('%%%%%cluster ' + idx);
-    for (let productId in cluster) {
-      console.log((await productService.getProductById(productId)).name + ': ' + cluster[productId]);
-    }
-  }
+  // for (let [idx, cluster] of u.entries()) {
+  //   console.log('%%%%%cluster ' + idx);
+  //   for (let productId in cluster) {
+  //     console.log((await productService.getProductById(productId)).name + ': ' + cluster[productId]);
+  //   }
+  // }
   // console.log('$$$$$$$$ v');
   // console.log(JSON.stringify(v, null, 2));
 
@@ -391,9 +398,11 @@ async function genRecommendedProducts(req, res) {
     // if (u[belongedTo][productId] < initMembership + 0.01) {
     //   continue
     // }
+    if(cluster_products[belongedTo][boughtProductId].distance > d_max){continue}
     // console.log('push in recommended products');
     for (let prdct in cluster_products[belongedTo]) { // prdct = productId
-      if (cluster_products[belongedTo][prdct].distance < cluster_products[belongedTo][boughtProductId].distance) {
+      // if (cluster_products[belongedTo][prdct].distance < cluster_products[belongedTo][boughtProductId].distance) {
+      if(prdct != boughtProductId && cluster_products[belongedTo][prdct].distance < d_max){  
         recommendedProducts.push({ id: prdct, detail: cluster_products[belongedTo][prdct] })
         // console.log({ id: prdct, detail: cluster_products[belongedTo][prdct] });
       }
@@ -424,7 +433,7 @@ async function genRecommendedProducts(req, res) {
       hasBeenBought: boughtProducts.find((boughtProductId)=>boughtProductId.toString()==product.id.toString())?true:false,
       cluster: product_cluster[product.id],
       membership: cluster_products[product_cluster[product.id]][product.id].membership,
-      initMembership: u_[product_cluster[product.id]][product.id],  // to belonged cluster
+      supervisedMembership: u_[product_cluster[product.id]][product.id],  // to belonged cluster
       distanceToCenter: cluster_products[product_cluster[product.id]][product.id].distance
     }
   }
@@ -432,7 +441,7 @@ async function genRecommendedProducts(req, res) {
     center: v[idx],
     productsId: Object.entries(cluster).map(([key, value])=>key)
   }))
-  res.send({productsList, clustersList, recommendedProducts, iterate: count, error});
+  res.send({productsList, clustersList, initU, u, u_, recommendedProducts, iterate: count, error});
 }
 
 /**
