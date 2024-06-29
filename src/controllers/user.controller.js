@@ -188,7 +188,7 @@ async function genRecommendedProducts(req, res) {
   // console.log(JSON.stringify(products,null,2));
 
   // max cluster
-  const maxI = boughtProducts.length * 2
+  const maxI = 2
 
   // init u_: [maxI] of productId -> membership // Example: [{'productId1':0.5, 'productId2':0.2},....]
   const u_InitElement = {}
@@ -201,10 +201,9 @@ async function genRecommendedProducts(req, res) {
   }
   // asign each boughtProduct to a separate k
   let initI = 0
-  const initSupervisedMembership = 0.5
+  const initSupervisedMembership = 0.8
   for (let boughtProduct of boughtProducts) {
     u_[initI][boughtProduct] = initSupervisedMembership
-    initI += 1
   }
 
   // init u: [maxI] of productId -> membership // Example: [{'productId1':0.5, 'productId2':0.2},....]
@@ -393,20 +392,23 @@ async function genRecommendedProducts(req, res) {
   // }
 
   const recommendedProducts = []  // [{id, detail:{name, membership, distance}},...]
-  for (let boughtProductId of boughtProducts) {
-    const belongedTo = product_cluster[boughtProductId]
+
+  // duyet cluster 0, neu ko phai boughtProduct thì là recommend, ko xet distance
+    const belongedTo = 0
     // if (u[belongedTo][productId] < initMembership + 0.01) {
     //   continue
     // }
-    if(cluster_products[belongedTo][boughtProductId].distance > d_max){continue}
     // console.log('push in recommended products');
     for (let prdct in cluster_products[belongedTo]) { // prdct = productId
       // if (cluster_products[belongedTo][prdct].distance < cluster_products[belongedTo][boughtProductId].distance) {
-      if(prdct != boughtProductId && cluster_products[belongedTo][prdct].distance < d_max){  
+      // if ko phai sp da mua
+      if(!boughtProducts.find((boughtProductId)=>boughtProductId.toString()==prdct.toString())){ 
+        // console.log(prdct.toString()); 
+        // console.log(boughtProductId.toString());
+        // console.log(prdct.toString() !== boughtProductId.toString());
         recommendedProducts.push({ id: prdct, detail: cluster_products[belongedTo][prdct] })
         // console.log({ id: prdct, detail: cluster_products[belongedTo][prdct] });
       }
-    }
 
   }
   // console.log('total recommended products');
