@@ -56,13 +56,13 @@ const createOrder = catchAsync(async (req, res) => {
 
   // update orders and boughtProducts of user
   const user = await userService.getUserById(req.auth.uid)
-	user.orders.push(order)
-	
-	const hasBought = await userService.hasBought(user,order.product)
-    if(!hasBought){
-		user.boughtProducts.push(product.id)
-	}
-	user.save()
+  user.orders.push(order)
+
+  const hasBought = await userService.hasBought(user, order.product)
+  if (!hasBought) {
+    user.boughtProducts.push(product.id)
+  }
+  user.save()
 
 });
 
@@ -87,12 +87,12 @@ const createOrders = catchAsync(async (req, res) => {
 
   // update orders and boughtProducts of user
   const user = await userService.getUserById(req.auth.uid)
-  for(let order of results){
+  for (let order of results) {
     user.orders.push(order.id)
 
-    const hasBought = await userService.hasBought(user,order.product)
+    const hasBought = await userService.hasBought(user, order.product)
     console.log(hasBought);
-    if(!hasBought){
+    if (!hasBought) {
       user.boughtProducts.push(order.product)
     }
   }
@@ -167,7 +167,7 @@ const updateOrder = catchAsync(async (req, res) => {
   res.send(order);
 
   // notify user
-  
+
   const newStatus = req.body.status
   console.log(oldStatus);
   console.log(newStatus);
@@ -177,7 +177,7 @@ const updateOrder = catchAsync(async (req, res) => {
 
     const changeOrderStatusNoti = {
       type: 'ChangeOrderStatusNoti', orderId: req.params.id, timeCreated: new Date(),
-      productName: product.name, productId: product.id, amount: oldOrder.amount, hasSeen: false, oldStatus, 
+      productName: product.name, productId: product.id, amount: oldOrder.amount, hasSeen: false, oldStatus,
       newStatus
     }
     // save noti to db
@@ -192,11 +192,177 @@ const updateOrder = catchAsync(async (req, res) => {
 });
 
 
+/**
+ * params keyword, page, startDate, endDate,gmt
+ */
+const getOwnOrders = catchAsync(async (req, res) => {
+
+  const query = qs.parse(req.url.split('?')[1], { depth: 10 });
+  const keyword = query.keyword;
+  const userId = req.auth.uid;
+  const gmt = (query.gmt && query.gmt != '') ? query.gmt : 0;
+  // console.log(JSON.stringify(query, null, 2));
+  const page = (query.page && query.page != '') ? query.page : 1; // For example, the first page
+  const limit = 10;
+  let results, totalPages;
+
+
+  const match = { user: userId };
+  if (query.startDate && query.startDate != '' && query.endDate && query.endDate != '') {
+    const startDate = new Date(query.startDate);
+    startDate.setHours(startDate.getHours() - gmt);
+    const endDate = new Date(query.endDate);
+    endDate.setHours(endDate.getHours() - gmt);
+    match.createdAt = { $gte: startDate, $lt: endDate };
+  } else if (query.startDate && query.startDate != '') {
+    const startDate = new Date(query.startDate);
+    startDate.setHours(startDate.getHours() - gmt);
+    match.createdAt = { $gte: startDate };
+  } else if (query.endDate && query.endDate != '') {
+    endDate.setHours(endDate.getHours() - gmt);
+    match.createdAt = { $gte: startDate, $lt: endDate };
+    match.createdAt = { $lt: endDate };
+  }
+  // console.log(JSON.stringify(match, null, 2));
+
+  // Step 1: Count total matching documents
+  Order.aggregate([
+    // Match orders of the user within the date range
+    {
+      $match: match
+    },
+
+    // Lookup to join with products
+    {
+      $lookup: {
+        from: 'products', // Name of the products collection
+        localField: 'product',
+        foreignField: '_id',
+        as: 'productDetail'
+      }
+    },
+
+    // Lookup to join with categories within products
+    {
+      $lookup: {
+        from: 'categories', // Assuming categories are in a separate collection named 'categories'
+        localField: 'productDetail.categories.id',
+        foreignField: '_id',
+        as: 'categoryDetails'
+      }
+    },
+
+    // Match orders where product name or category name includes 'shirt'
+    {
+      $match: {
+        $or: [
+          { 'productDetails.name': { $regex: keyword, $options: 'i' } },
+          { 'categoryDetails.name': { $regex: keyword, $options: 'i' } }
+        ]
+      }
+    },
+
+    // Group by null to count the number of documents
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 }
+      }
+    }
+  ]).exec((err, result) => {
+    if (err) {
+      console.error(err);
+    } else {
+      const totalCount = result.length > 0 ? result[0].count : 0;
+      totalPages = Math.ceil(totalCount / limit);
+      // console.log(`Total Pages: ${totalPages}`);
+
+      // Step 2: Retrieve paginated results
+      Order.aggregate([
+        // Match orders of the user within the date range
+        {
+          $match: match
+        },
+
+        // Lookup to join with products
+        {
+          $lookup: {
+            from: 'products', // Name of the products collection
+            localField: 'product',
+            foreignField: '_id',
+            as: 'product'
+          }
+        },
+        // Unwind the product details array
+        { $unwind: '$product' },
+        // Lookup to join with categories within products
+        {
+          $lookup: {
+            from: 'categories', // Assuming categories are in a separate collection named 'categories'
+            localField: 'product.categories.id',
+            foreignField: '_id',
+            as: 'categoryDetails'
+          }
+        },
+
+        // Match orders where product name or category name includes 'shirt'
+        {
+          $match: {
+            $or: [
+              { 'product.name': { $regex: keyword, $options: 'i' } },
+              { 'categoryDetails.name': { $regex: keyword, $options: 'i' } }
+            ]
+          }
+        },
+
+        // Sort by creation date if needed
+        { $sort: { createdAt: -1 } },
+
+        // Paginate results
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+
+        // Project the fields you want to return
+        {
+          $project: {
+            user: 1,
+            product: 1,
+            amount: 1,
+            totalPrice: 1,
+            deliveryFee: 1,
+            totalCost: 1,
+            status: 1,
+            hasPaid: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            // 'product._id': 1,
+            // 'product.name': 1,
+            // 'product.price': 1,
+            // 'product.description': 1,
+            'categoryDetails.name': 1
+          }
+        }
+      ]).exec((err, orders) => {
+        if (err) {
+          console.error(err);
+        } else {
+          results = orders
+          res.send({ results, totalPages, page });
+          // console.log(orders);
+        }
+      });
+    }
+  });
+
+});
+
+
 
 module.exports = {
   createOrder,
   getOrder,
   getOrders,
   updateOrder,
-  createOrders
+  createOrders,
+  getOwnOrders
 };
