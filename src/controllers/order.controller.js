@@ -40,8 +40,8 @@ const createOrder = catchAsync(async (req, res) => {
   // emit notification to admin
   const admins = await User.find({ role: 'admin' })
   const notification = {
-    type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name,
-    userId: req.auth.uid, productName: product.name, productId: product.id, amount: req.body.amount, hasSeen: false
+    type: 'newOrder', orderId: order.id, username: req.auth.name,
+    userId: req.auth.uid, productName: product.name, productId: product.id, amount: req.body.amount, hasSeen: false, createdAt: new Date()
   }
   for (let admin of admins) {
     // save noti to db
@@ -113,7 +113,7 @@ const createOrders = catchAsync(async (req, res) => {
   const newOrders = []
   for (let order of results) {
     const product = await productService.getProductById(order.product)
-    const newOrder = { type: 'newOrder', orderId: order.id, timeCreated: new Date(), username: req.auth.name, userId: req.auth.uid, productName: product.name, productId: product.id, amount: order.amount, hasSeen: false }
+    const newOrder = { type: 'newOrder', orderId: order.id, username: req.auth.name, userId: req.auth.uid, productName: product.name, productId: product.id, amount: order.amount, hasSeen: false, createdAt: new Date() }
     newOrders.push(newOrder)
   }
   const admins = await User.find({ role: 'admin' })
@@ -143,8 +143,8 @@ const getOrders = catchAsync(async (req, res) => {
   const query = qs.parse(req.url.split('?')[1], { depth: 10 });
   const filter = query.filter
   const options = { sortBy: null, ...query.options }
-  console.log(JSON.stringify(options));
-  console.log(JSON.stringify(filter));
+  // console.log(JSON.stringify(options,null,2));
+  // console.log(JSON.stringify(filter,null,2));
   const result = await orderService.queryOrders(filter, options);
   // const populatedDocs = await Order.populate(result.results,[{ path: 'user', select: 'name' }, {path: 'product', select: 'name'}])
   // result.results = populatedDocs;
@@ -176,7 +176,7 @@ const updateOrder = catchAsync(async (req, res) => {
     const product = await productService.getProductById(oldOrder.product)
 
     const changeOrderStatusNoti = {
-      type: 'ChangeOrderStatusNoti', orderId: req.params.id, timeCreated: new Date(),
+      type: 'ChangeOrderStatusNoti', orderId: req.params.id, createdAt: new Date(),
       productName: product.name, productId: product.id, amount: oldOrder.amount, hasSeen: false, oldStatus,
       newStatus
     }

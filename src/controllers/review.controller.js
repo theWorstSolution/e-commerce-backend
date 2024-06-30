@@ -36,7 +36,7 @@ async function createReview(req, res) {
 async function getReviews(req, res) {
     const query = qs.parse(req.url.split('?')[1]);
 
-    query.options = { sortBy: 'timeCreated', ...query.options }
+    query.options = { sortBy: 'createdAt', ...query.options }
 
     const result = await reviewService.queryReviews(query.filter, query.options)
     res.send(result)
