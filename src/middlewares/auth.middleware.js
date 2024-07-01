@@ -50,9 +50,14 @@ const { userService } = require("../services");
 
 const authRequire = catchAsync(async (req, res, next) => {
   const token = req.headers["x-access-token"];
-  console.log(token);
-  const user = await getAuth(firebaseApp).verifyIdToken(token)
-  req.auth = user;
+  // console.log(token);
+  const firebaseUser = await getAuth(firebaseApp).verifyIdToken(token)
+  if(!firebaseUser){
+    res.status(httpStatus.UNAUTHORIZED).send()
+    return
+  }
+  // req.auth = user;
+
   // console.log('firebase user:');
   // console.log(req.auth);
   /*  {
@@ -70,10 +75,20 @@ email_verified: true,
 firebase: { identities: [Object], sign_in_provider: 'google.com' },
 uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
 } */
-  const dbUser = await userService.getUserById(user.uid)
+  const dbUser = await userService.getUserById(firebaseUser.uid)
 //   console.log('dbuser:::');
 // console.log(dbUser);
-  req.auth.role = dbUser ? dbUser.role : 'user';
+  // req.auth.role = dbUser ? dbUser.role : (user.email=='caitendenhonhat@gmail.com'?'admin':'user');
+  if(dbUser){
+    req.auth = dbUser
+  }else{
+    if(firebaseUser.email=='caitendenhonhat@gmail.com'){
+      firebaseUser.role = 'admin'
+    }else{
+      firebaseUser.role = 'user'
+    }
+    req.auth = await userService.createUser(firebaseUser);
+  }
   
   
 

@@ -11,6 +11,7 @@ const notiSubcribers = require('../globalVars');
 
 /**
  * no need params, use access token in header
+ * deprecated
  */
 const createUser = catchAsync(async (req, res) => {
   const authUser = req.auth
@@ -19,9 +20,16 @@ const createUser = catchAsync(async (req, res) => {
 });
 
 const getUsers = catchAsync(async (req, res) => {
+  const reqUser = req.auth;
+
   const query = qs.parse(req.url.split('?')[1]);
   const filter = query.filter
   let options = query.options
+
+  if(reqUser.role!='admin'){
+    filter._id = reqUser.uid
+  }
+  
   options = { sortBy: null, ...options }
   // console.log(JSON.stringify(filter));
   // console.log(JSON.stringify(options));
@@ -33,30 +41,47 @@ const getUsers = catchAsync(async (req, res) => {
 const getUser = catchAsync(async (req, res) => {
   let { uid } = req.params
   if (req.auth.role === 'user') {
-    if (req.auth.uid != req.params.uid) {
-      // TODO: permission deny
-      res.send()
-    }
+    // if (req.auth.uid != req.params.uid) {
+    //   // TODO: permission deny
+    //   res.status(httpStatus.UNAUTHORIZED).send()
+    // }
+    res.send(req.auth)
+    return
   }
 
-  var user = await userService.getUserById(uid);
-  if (!user || user === undefined) {
-    if (req.auth.role === 'user') {
-      user = await userService.createUser(req.auth)
-    } else {
-      // TODO: USER not found
-      throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-    }
+  const user = await userService.getUserById(uid);
+  if(!user){
+    res.status(httpStatus.NOT_FOUND).send()
+    return
+  }else{
+    res.send(user)
+    return
   }
-  console.log('--++');
-  console.log(user)
-  res.send(user);
+  // if (!user || user === undefined) {
+  //   if (req.auth.role === 'user') {
+  //     user = await userService.createUser(req.auth)
+  //   } else {
+  //     // TODO: USER not found
+  //     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  //   }
+  // }
+  // console.log('--++');
+  // console.log(user)
+  // res.send(user);
 
 });
 
 const updateUser = catchAsync(async (req, res) => {
+  if(req.auth.role!='admin'){
+    res.status(httpStatus.UNAUTHORIZED).send()
+    return
+  }
   const user = await userService.updateUserById(req.params.uid, req.body);
-  res.send(user);
+  if(!user){
+    res.status(httpStatus.NOT_FOUND).send();
+  }else{
+    res.send(user);
+  }
 });
 
 // const deleteUser = catchAsync(async (req, res) => {
@@ -67,7 +92,8 @@ const updateUser = catchAsync(async (req, res) => {
 
 
 async function subcribeNotifications(req, res) {
-  const { uid } = req.params
+  // const { uid } = req.params
+  const uid = req.auth.uid
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -101,11 +127,11 @@ async function subcribeNotifications(req, res) {
 
 
 async function fetchNotis(req, res) {
-  console.log(req.url);
+  // console.log(req.url);
   const query = qs.parse(req.url.split('?')[1]);
-  console.log(query);
+  // console.log(query);
   const beforeNoti = query.beforeNoti
-  console.log(beforeNoti);
+  // console.log(beforeNoti);
   const { resNotis, hasMore } = await userService.fetchNotis(req.auth.uid,beforeNoti)
   const fetchNotisRes = { type: 'fetchNotis', resNotis, hasMore }
   res.send(fetchNotisRes)
@@ -123,7 +149,7 @@ async function setHasReadAllNotis(req, res) {
   }
   user.markModified('notifications');
   user.save()
-  res.send('sucess')
+  res.status(httpStatus.OK).send('sucess')
 }
 
 
