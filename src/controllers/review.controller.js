@@ -1,3 +1,4 @@
+const httpStatus = require("http-status");
 const { userService, reviewService, productService } = require("../services");
 const qs = require('qs');
 
@@ -11,7 +12,7 @@ const qs = require('qs');
  */
 async function createReview(req, res) {
     if (!await userService.hasBought(req.auth.uid, req.body.product) || await reviewService.hasReviewed(req.auth.uid, req.body.product)) {
-        res.send('cant create'); return
+        res.status(httpStatus.UNAUTHORIZED).send('cant create'); return
     }
 
     const review = await reviewService.createReview({ user: req.auth.uid, ...req.body })
@@ -53,7 +54,7 @@ async function updateReview(req, res){
     const review = await reviewService.getReviewById(reviewId)
 	//chỉ cho update rating và content, và phải cùng user
 	if(req.auth.uid.toString() != review.user.toString()){
-		res.send('permission deny')
+		res.status(httpStatus.UNAUTHORIZED).send()
 		return
 	} 
 	
@@ -70,7 +71,7 @@ async function deleteReview(req,res){
 	const review = await reviewService.getReviewById(reviewId)
 	//chỉ cho update rating và content, và phải cùng user
 	if(req.auth.uid.toString() != review.user.toString()){
-		res.send('permission deny')
+		res.status(httpStatus.UNAUTHORIZED).send()
 		return
 	} 
 	
