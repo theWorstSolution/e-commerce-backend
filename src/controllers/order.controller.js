@@ -22,6 +22,10 @@ const createOrder = catchAsync(async (req, res) => {
   //   res.send()
   //   return
   // }
+  const reqUser = req.auth;
+  if(reqUser.uid != req.body.user){
+    res.status(httpStatus.UNAUTHORIZED).send(); return;
+  }
   const product = await productService.getProductById(req.body.product)
   req.body.totalPrice = product.price * req.body.amount
   req.body.totalCost = req.body.totalPrice
@@ -72,6 +76,11 @@ const createOrder = catchAsync(async (req, res) => {
  * @param{Number} req.body.buyList[].amount
  */
 const createOrders = catchAsync(async (req, res) => {
+  const reqUser = req.auth;
+  if(reqUser.role!='admin'){
+    res.status(httpStatus.UNAUTHORIZED).send()
+    return
+  }
   const bodies = await Promise.all(req.body.buyList.map(async (order) => {
     const user = req.auth.uid
     const product = order.productId
@@ -140,9 +149,15 @@ const createOrders = catchAsync(async (req, res) => {
 
 //TODO: modify filter
 const getOrders = catchAsync(async (req, res) => {
+  const reqUser = req.auth;
+
   const query = qs.parse(req.url.split('?')[1], { depth: 10 });
   const filter = query.filter
   const options = { sortBy: null, ...query.options }
+
+  if(reqUser.role!='admin'){
+    filter.user = reqUser.uid
+  }
   // console.log(JSON.stringify(options,null,2));
   // console.log(JSON.stringify(filter,null,2));
   const result = await orderService.queryOrders(filter, options);
@@ -152,14 +167,25 @@ const getOrders = catchAsync(async (req, res) => {
 });
 
 const getOrder = catchAsync(async (req, res) => {
+  const reqUser = req.auth;
   let { id } = req.params
   var order = await orderService.getOrderById(id);
+  if(!order){
+    res.status(httpStatus.NOT_FOUND).send(); return;
+  }
+  if(order.user.toString() != reqUser.uid){
+    res.status(httpStatus.UNAUTHORIZED).send();  return;
+  }
   order = await order.populate('user', 'name').populate('product', 'name').execPopulate()
   res.send(order);
 });
 
 const updateOrder = catchAsync(async (req, res) => {
   // TODO: check quyền admin
+  const reqUser = req.auth;
+  if(reqUser.role!='admin'){
+    res.status(httpStatus.UNAUTHORIZED).send();  return;
+  }
   const oldOrder = await orderService.getOrderById(req.params.id)
   const oldStatus = oldOrder.status
 
@@ -196,7 +222,7 @@ const updateOrder = catchAsync(async (req, res) => {
  * params keyword, page, startDate, endDate,gmt
  */
 const getOwnOrders = catchAsync(async (req, res) => {
-
+  
   const query = qs.parse(req.url.split('?')[1], { depth: 10 });
   const keyword = query.keyword;
   const userId = req.auth.uid;
