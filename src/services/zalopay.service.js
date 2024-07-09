@@ -23,7 +23,7 @@ const config = {
 async function createOrder(userId, orderIds, totalCost) {
     const embed_data = {
         preferred_payment_method: [],
-        redirecturl: envConfig.ownUrl+'/buy-success',
+        redirecturl: envConfig.feUrl+'/buy-success',
         userId,
         orderIds,
         totalCost

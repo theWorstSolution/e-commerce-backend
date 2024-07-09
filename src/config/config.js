@@ -29,6 +29,7 @@ const envVarsSchema = Joi.object()
 const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
 
 module.exports = {
+  feUrl: process.env.FE_URL,
   ownUrl: process.env.OWN_URL,
   env: envVars.NODE_ENV,
   port: envVars.PORT,
