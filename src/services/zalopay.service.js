@@ -4,7 +4,7 @@ const CryptoJS = require('crypto-js'); // npm install crypto-js
 const moment = require('moment'); // npm install moment
 const qs = require('qs');
 const envConfig = require('../config/config')
-const { orderService } = require('.');
+const { orderService, productService } = require('.');
 
 // APP INFO
 const config = {

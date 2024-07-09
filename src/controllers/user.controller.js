@@ -72,9 +72,12 @@ const getUser = catchAsync(async (req, res) => {
 });
 
 const updateUser = catchAsync(async (req, res) => {
-  if(req.auth.role!='admin'){
+  if(req.auth.role!='admin' && req.auth.uid != req.params.uid){
     res.status(httpStatus.UNAUTHORIZED).send()
     return
+  }
+  if(req.auth.role!='admin'){
+    req.body = pick(req.body, ['name', 'email', 'cart'])
   }
   const user = await userService.updateUserById(req.params.uid, req.body);
   if(!user){

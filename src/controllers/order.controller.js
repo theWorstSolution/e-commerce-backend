@@ -85,10 +85,10 @@ const createOrder = catchAsync(async (req, res) => {
  */
 const createOrders = catchAsync(async (req, res) => {
   const reqUser = req.auth;
-  if (reqUser.role != 'admin') {
-    res.status(httpStatus.UNAUTHORIZED).send()
-    return
-  }
+  // if (reqUser.role != 'admin') {
+  //   res.status(httpStatus.UNAUTHORIZED).send()
+  //   return
+  // }
   const bodies = await Promise.all(req.body.buyList.map(async (order) => {
     const user = req.auth.uid
     const product = order.productId
@@ -184,11 +184,13 @@ const getOrders = catchAsync(async (req, res) => {
 const getOrder = catchAsync(async (req, res) => {
   const reqUser = req.auth;
   let { id } = req.params
+  // console.log(id);
   var order = await orderService.getOrderById(id);
+  // console.log(JSON.stringify(order,null,2));
   if (!order) {
     res.status(httpStatus.NOT_FOUND).send(); return;
   }
-  if (order.user.toString() != reqUser.uid) {
+  if (req.auth.role !='admin' && order.user.toString() != reqUser.uid) {
     res.status(httpStatus.UNAUTHORIZED).send(); return;
   }
   order = await order.populate('user', 'name').populate('product', 'name').execPopulate()
