@@ -77,8 +77,8 @@ firebase: { identities: [Object], sign_in_provider: 'google.com' },
 uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
 } */
   const dbUser = await userService.getUserById(firebaseUser.uid)
-//   console.log('dbuser:::');
-// console.log(dbUser);
+  console.log('dbuser:::');
+console.log(dbUser);
   // req.auth.role = dbUser ? dbUser.role : (user.email=='caitendenhonhat@gmail.com'?'admin':'user');
   if(dbUser){
     req.auth = dbUser

@@ -31,10 +31,10 @@ const getUsers = catchAsync(async (req, res) => {
   }
   
   options = { sortBy: null, ...options }
-  // console.log(JSON.stringify(filter));
-  // console.log(JSON.stringify(options));
+  console.log(JSON.stringify(filter));
+  console.log(JSON.stringify(options));
   const result = await userService.queryUsers(filter, options);
-  // console.log(result)
+  console.log(result)
   res.send(result);
 });
 
