@@ -56,8 +56,15 @@ if (config.env === 'production') {
   app.use('/v1/auth', authLimiter);
 }
 
+
+
+
 // v1 api routes
 app.use('/v1', routes);
+
+app.get('/', function(req, res){
+  res.send("Hello world!");
+});
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {

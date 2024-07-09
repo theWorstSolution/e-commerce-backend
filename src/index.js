@@ -22,6 +22,7 @@ const { productController } = require('./controllers');
 
 
 let server;
+console.log(config.mongoose.url);
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(async () => {
   logger.info('Connected to MongoDB');
   // await productController.genSimilarProduct();
