@@ -1,3 +1,5 @@
+const catchAsync = require("../utils/catchAsync");
+
 const adminRequire = catchAsync(async (req, res, next) => {
     const reqUser = req.auth;
     if(reqUser.role!='admin'){

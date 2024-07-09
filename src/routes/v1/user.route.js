@@ -7,7 +7,7 @@ const router = express.Router();
 router.route('/').get(authRequire, userController.getUsers)
 
 router.route('/user/notifications').get(authRequire, userController.fetchNotis)
-router.route('/user/:uid/subcribe-notifications').get(authRequire, userController.subcribeNotifications)
+router.route('/user/:uid/subcribe-notifications').get(userController.subcribeNotifications)
 router.route('/user/has-read-all-notifications').post(authRequire, userController.setHasReadAllNotis)
 
 router.route('/user/recommended-products').post(authRequire, userController.genRecommendedProducts)

@@ -89,7 +89,7 @@ uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
     }
     req.auth = await userService.createUser(firebaseUser);
   }
-  
+  req.auth.uid = req.auth.id
   
 
   return next();

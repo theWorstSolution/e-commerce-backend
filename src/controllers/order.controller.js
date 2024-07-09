@@ -2,10 +2,11 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { orderService, userService, productService } = require('../services');
+const { orderService, userService, productService, zalopayService } = require('../services');
 const { Order, User } = require('../models');
 const { userController } = require('../controllers')
 const qs = require('qs');
+const { ObjectId } = require('mongodb');
 const notiSubcribers = require('../globalVars');
 const { createNewNoti } = require('../services/user.service');
 
@@ -22,19 +23,26 @@ const createOrder = catchAsync(async (req, res) => {
   //   res.send()
   //   return
   // }
+
   const reqUser = req.auth;
-  if(reqUser.uid != req.body.user){
+  if (reqUser.id != req.body.user) {
     res.status(httpStatus.UNAUTHORIZED).send(); return;
   }
   const product = await productService.getProductById(req.body.product)
   req.body.totalPrice = product.price * req.body.amount
   req.body.totalCost = req.body.totalPrice
+
   const order = await orderService.createOrder(req.body);
 
-  product.soldAmount += req.body.amount
-  product.save()
+  const payUrl = await zalopayService.createOrder(reqUser.id, [order.id], order.totalCost)
+  // product.soldAmount += req.body.amount
+  // product.save()
 
-  res.status(httpStatus.CREATED).send(order);
+  if (payUrl) {
+    res.status(httpStatus.CREATED).send(payUrl);
+  } else {
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send();
+  }
 
   //
   // userController.genRecommendedProducts(req.body.user)
@@ -77,7 +85,7 @@ const createOrder = catchAsync(async (req, res) => {
  */
 const createOrders = catchAsync(async (req, res) => {
   const reqUser = req.auth;
-  if(reqUser.role!='admin'){
+  if (reqUser.role != 'admin') {
     res.status(httpStatus.UNAUTHORIZED).send()
     return
   }
@@ -90,7 +98,14 @@ const createOrders = catchAsync(async (req, res) => {
     return { user, product, amount, totalPrice, totalCost }
   }))
   const results = await orderService.createOrders(bodies);
-  res.status(httpStatus.CREATED).send(results);
+  let totalCost = 0;
+  const orderIds = results.map((order)=>{
+    totalCost+=order.totalCost;
+    return order.id
+  })
+  const payUrl = await zalopayService.createOrder(reqUser.id, orderIds, totalCost)
+
+  res.status(httpStatus.CREATED).send(payUrl);
 
 
 
@@ -155,7 +170,7 @@ const getOrders = catchAsync(async (req, res) => {
   const filter = query.filter
   const options = { sortBy: null, ...query.options }
 
-  if(reqUser.role!='admin'){
+  if (reqUser.role != 'admin') {
     filter.user = reqUser.uid
   }
   // console.log(JSON.stringify(options,null,2));
@@ -170,11 +185,11 @@ const getOrder = catchAsync(async (req, res) => {
   const reqUser = req.auth;
   let { id } = req.params
   var order = await orderService.getOrderById(id);
-  if(!order){
+  if (!order) {
     res.status(httpStatus.NOT_FOUND).send(); return;
   }
-  if(order.user.toString() != reqUser.uid){
-    res.status(httpStatus.UNAUTHORIZED).send();  return;
+  if (order.user.toString() != reqUser.uid) {
+    res.status(httpStatus.UNAUTHORIZED).send(); return;
   }
   order = await order.populate('user', 'name').populate('product', 'name').execPopulate()
   res.send(order);
@@ -183,8 +198,8 @@ const getOrder = catchAsync(async (req, res) => {
 const updateOrder = catchAsync(async (req, res) => {
   // TODO: check quyền admin
   const reqUser = req.auth;
-  if(reqUser.role!='admin'){
-    res.status(httpStatus.UNAUTHORIZED).send();  return;
+  if (reqUser.role != 'admin') {
+    res.status(httpStatus.UNAUTHORIZED).send(); return;
   }
   const oldOrder = await orderService.getOrderById(req.params.id)
   const oldStatus = oldOrder.status
@@ -222,9 +237,15 @@ const updateOrder = catchAsync(async (req, res) => {
  * params keyword, page, startDate, endDate,gmt
  */
 const getOwnOrders = catchAsync(async (req, res) => {
-  
+
   const query = qs.parse(req.url.split('?')[1], { depth: 10 });
   const keyword = query.keyword;
+  var id;
+  try{
+    id = ObjectId(keyword)
+  }catch{
+    id = null;
+  }
   const userId = req.auth.uid;
   const gmt = (query.gmt && query.gmt != '') ? query.gmt : 0;
   // console.log(JSON.stringify(query, null, 2));
@@ -282,6 +303,7 @@ const getOwnOrders = catchAsync(async (req, res) => {
     {
       $match: {
         $or: [
+          { '_id': id },
           { 'productDetails.name': { $regex: keyword, $options: 'i' } },
           { 'categoryDetails.name': { $regex: keyword, $options: 'i' } }
         ]
@@ -335,6 +357,7 @@ const getOwnOrders = catchAsync(async (req, res) => {
         {
           $match: {
             $or: [
+              { '_id': id },
               { 'product.name': { $regex: keyword, $options: 'i' } },
               { 'categoryDetails.name': { $regex: keyword, $options: 'i' } }
             ]
@@ -382,6 +405,30 @@ const getOwnOrders = catchAsync(async (req, res) => {
 
 });
 
+/**
+ * if zalopay confirm transaction then order.haspaid = true
+ */
+const zalopayCallback = catchAsync(async (req, res) => {
+  const { dataJson, result } = zalopayService.checkCallback(req.body.data, req.body.mac)
+  // console.log(JSON.stringify(dataJson,null,2));
+  if (dataJson) {
+    const orderIds = dataJson.embed_data.orderIds
+    // console.log(JSON.stringify(orderIds,null,2));
+    for (let orderId of orderIds) {
+      const order = await orderService.getOrderById(orderId)
+      if (order.hasPaid == false) {
+        order.hasPaid = true;
+        await order.save();
+        const product = await productService.getProductById(order.product)
+        product.soldAmount += order.amount
+        await product.save()
+      }
+    }
+  }
+  // thông báo kết quả cho ZaloPay server
+  res.json(result);
+});
+
 
 
 module.exports = {
@@ -390,5 +437,6 @@ module.exports = {
   getOrders,
   updateOrder,
   createOrders,
-  getOwnOrders
+  getOwnOrders,
+  zalopayCallback
 };

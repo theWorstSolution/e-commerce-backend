@@ -92,8 +92,8 @@ const updateUser = catchAsync(async (req, res) => {
 
 
 async function subcribeNotifications(req, res) {
-  // const { uid } = req.params
-  const uid = req.auth.uid
+  const { uid } = req.params
+  // const uid = req.auth.uid
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -140,6 +140,8 @@ async function fetchNotis(req, res) {
 
 async function setHasReadAllNotis(req, res) {
   console.log('setHasReadAllNotis');
+  // console.log(JSON.stringify(req.auth,null,2));
+  // console.log(req.auth.uid);
   const user = await userService.getUserById(req.auth.uid)
   for (let noti of user.notifications) {
     if (noti.hasSeen) {
@@ -148,7 +150,7 @@ async function setHasReadAllNotis(req, res) {
     noti.hasSeen = true
   }
   user.markModified('notifications');
-  user.save()
+  await user.save()
   res.status(httpStatus.OK).send('sucess')
 }
 

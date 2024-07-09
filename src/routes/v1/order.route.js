@@ -7,5 +7,6 @@ router.route('').get(authRequire, orderController.getOrders).post(authRequire,or
 router.route('/order/:id').get(authRequire, orderController.getOrder).patch(authRequire, orderController.updateOrder)
 router.route('/order').post(authRequire,orderController.createOrder)
 router.route('/own').get(authRequire,orderController.getOwnOrders)
+router.route('/zalopayCallback').post(orderController.zalopayCallback)
 
 module.exports = router;
