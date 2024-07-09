@@ -85,6 +85,7 @@ const deleteUserById = async (userId) => {
  */
 async function createNewNoti(user,noti){
   // case user == uid
+  noti.createdAt = new Date();
   if(typeof user == 'string'){
     user = await getUserById(user)
   }

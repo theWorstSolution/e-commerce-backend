@@ -59,8 +59,8 @@ const authRequire = catchAsync(async (req, res, next) => {
   }
   // req.auth = user;
 
-  console.log('firebase user:');
-  console.log(req.auth);
+  // console.log('firebase user:');
+  // console.log(req.auth);
   /*  {
 name: 'Thành Nguyễn Chi',
 picture: 'https://lh3.googleusercontent.com/a/ACg8ocIdKHNTmMi_3aqnTyYwXiASv_zDX4i4Vi4NPkxl9s8=s96-c',
@@ -77,8 +77,8 @@ firebase: { identities: [Object], sign_in_provider: 'google.com' },
 uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
 } */
   const dbUser = await userService.getUserById(firebaseUser.uid)
-  console.log('dbuser:::');
-console.log(dbUser);
+//   console.log('dbuser:::');
+// console.log(dbUser);
   // req.auth.role = dbUser ? dbUser.role : (user.email=='caitendenhonhat@gmail.com'?'admin':'user');
   if(dbUser){
     req.auth = dbUser
@@ -91,7 +91,7 @@ console.log(dbUser);
 
     req.auth = await userService.createUser(firebaseUser);
     const noti = {type:'welcome',}
-    await userService.createNewNoti(noti)
+    await userService.createNewNoti(req.auth, noti)
   }
   req.auth.uid = req.auth.id
   
