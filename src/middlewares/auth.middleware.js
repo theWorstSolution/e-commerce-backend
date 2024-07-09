@@ -7,7 +7,6 @@ const firebaseApp = require("../config/firebase");
 
 const jwt = require("jsonwebtoken");
 const { userService } = require("../services");
-const { types } = require("joi");
 
 // const auth = catchAsync(async (req, res, next) => {
 //   const token = req.headers["x-access-token"];
@@ -52,6 +51,7 @@ const { types } = require("joi");
 const authRequire = catchAsync(async (req, res, next) => {
   const token = req.headers["x-access-token"];
   // console.log(token);
+  console.log('authRequire');
   const firebaseUser = await getAuth(firebaseApp).verifyIdToken(token)
   if(!firebaseUser){
     res.status(httpStatus.UNAUTHORIZED).send()
@@ -59,8 +59,8 @@ const authRequire = catchAsync(async (req, res, next) => {
   }
   // req.auth = user;
 
-  // console.log('firebase user:');
-  // console.log(req.auth);
+  console.log('firebase user:');
+  console.log(req.auth);
   /*  {
 name: 'Thành Nguyễn Chi',
 picture: 'https://lh3.googleusercontent.com/a/ACg8ocIdKHNTmMi_3aqnTyYwXiASv_zDX4i4Vi4NPkxl9s8=s96-c',
