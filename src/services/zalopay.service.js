@@ -3,6 +3,7 @@ const axios = require('axios').default; // npm install axios
 const CryptoJS = require('crypto-js'); // npm install crypto-js
 const moment = require('moment'); // npm install moment
 const qs = require('qs');
+const envConfig = require('../config/config')
 const { orderService } = require('.');
 
 // APP INFO
@@ -22,7 +23,7 @@ const config = {
 async function createOrder(userId, orderIds, totalCost) {
     const embed_data = {
         preferred_payment_method: [],
-        redirecturl: 'http://localhost:3033/buy-success',
+        redirecturl: envConfig.ownUrl+'/buy-success',
         userId,
         orderIds,
         totalCost
@@ -41,7 +42,7 @@ async function createOrder(userId, orderIds, totalCost) {
         amount: totalCost,
         description: `BKSHOP - Payment for the order #${transID}`,
         bank_code: "",
-        callback_url: 'https://22f3-42-114-151-157.ngrok-free.app/v1/orders/zalopayCallback'
+        callback_url: envConfig.ownUrl+'/v1/orders/zalopayCallback'
     };
 
     // appid|app_trans_id|appuser|amount|apptime|embeddata|item
