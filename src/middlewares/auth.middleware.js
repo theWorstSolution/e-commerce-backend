@@ -7,6 +7,7 @@ const firebaseApp = require("../config/firebase");
 
 const jwt = require("jsonwebtoken");
 const { userService } = require("../services");
+const { types } = require("joi");
 
 // const auth = catchAsync(async (req, res, next) => {
 //   const token = req.headers["x-access-token"];
@@ -87,7 +88,10 @@ uid: 'juo3v5nPOAYj4TTSNmit5GtTpn83'
     }else{
       firebaseUser.role = 'user'
     }
+
     req.auth = await userService.createUser(firebaseUser);
+    const noti = {type:'welcome',}
+    await userService.createNewNoti(noti)
   }
   req.auth.uid = req.auth.id
   

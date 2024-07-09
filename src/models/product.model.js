@@ -51,7 +51,11 @@ const productSchema = new mongoose.Schema({
   soldAmount: {
     type: Number,
     default: 0
-  }
+  },
+  similarProducts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product' // Reference to the Review model
+  }],
 },
   {
     timestamps: true,

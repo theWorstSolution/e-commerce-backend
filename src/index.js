@@ -3,6 +3,7 @@ const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
 const WebSocket = require('ws');
+const { productController } = require('./controllers');
 
 // Initialize WebSocket server
 // const wss = new WebSocket.Server({ noServer: true }); // Create a WebSocket server without directly attaching it to a server
@@ -21,8 +22,9 @@ const WebSocket = require('ws');
 
 
 let server;
-mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
+mongoose.connect(config.mongoose.url, config.mongoose.options).then(async () => {
   logger.info('Connected to MongoDB');
+  // await productController.genSimilarProduct();
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
   });
