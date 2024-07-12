@@ -6,7 +6,7 @@ const { orderService, userService, productService, zalopayService } = require('.
 const { Order, User } = require('../models');
 const { userController } = require('../controllers')
 const qs = require('qs');
-const { ObjectId } = require('mongodb');
+var mongoose = require('mongoose');
 const notiSubcribers = require('../globalVars');
 const { createNewNoti } = require('../services/user.service');
 
@@ -168,8 +168,9 @@ const getOrders = catchAsync(async (req, res) => {
 
   const query = qs.parse(req.url.split('?')[1], { depth: 10 });
   const filter = query.filter
-  const options = { sortBy: null, ...query.options }
-
+  const options = { sortBy: 'createdAt:desc', ...query.options }
+console.log(JSON.stringify(options,null,2));
+console.log(JSON.stringify(filter,null,2));
   if (reqUser.role != 'admin') {
     filter.user = reqUser.uid
   }
