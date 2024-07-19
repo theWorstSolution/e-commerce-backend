@@ -159,6 +159,39 @@ async function setHasReadAllNotis(req, res) {
   res.status(httpStatus.OK).send('sucess')
 }
 
+function findMostNearCenter(products,top, boughtProducts){
+  // products[productId].distance
+  
+  function merge(products,productIds1, productIds2){
+    let idx1 = 0, idx2 = 0;
+    let res = []
+    console.log('productIds1.length');
+    console.log(productIds1.length);
+    console.log('productIds2.length');
+    console.log(productIds2.length);
+    while(idx1<productIds1.length && idx2<productIds2.length){
+      if(products[productIds1[idx1]].distance<products[productIds2[idx2]].distance){
+        res.push(productIds1[idx1]);  ++idx1;
+      }else{res.push(productIds2[idx2]);  ++idx2}
+    }
+    return res.concat(productIds1.slice(idx1)).concat(productIds2.slice(idx2));
+  }
+
+  function mergeSort(products, productIds){
+    if(productIds.length==1){return productIds}
+    const mid = Math.floor(productIds.length/2)
+    console.log('productIds.length');
+    console.log(productIds.length);
+    return merge(products,mergeSort(products,productIds.slice(0,mid)), mergeSort(products,productIds.slice(mid,productIds.length)))
+  }
+
+  let sortedProductIds = mergeSort(products, Object.keys(products))
+  // if(!boughtProducts.find((boughtProductId)=>boughtProductId.toString()==prdct.toString())){
+  // }
+  sortedProductIds = sortedProductIds.filter((productId)=>
+    !boughtProducts.find((boughtProductId)=>boughtProductId.toString()==productId.toString()))
+  return sortedProductIds.slice(0,top)
+}
 
 
 /**
@@ -424,7 +457,7 @@ async function genRecommendedProducts(req, res) {
   //   console.log(JSON.stringify(cluster, null, 2));
   // }
 
-  const recommendedProducts = []  // [{id, detail:{name, membership, distance}},...]
+  let recommendedProducts = []  // [{id, detail:{name, membership, distance}},...]
 
   // duyet cluster 0, neu ko phai boughtProduct thì là recommend, ko xet distance
     const belongedTo = 0
@@ -432,18 +465,21 @@ async function genRecommendedProducts(req, res) {
     //   continue
     // }
     // console.log('push in recommended products');
-    for (let prdct in cluster_products[belongedTo]) { // prdct = productId
-      // if (cluster_products[belongedTo][prdct].distance < cluster_products[belongedTo][boughtProductId].distance) {
-      // if ko phai sp da mua
-      if(!boughtProducts.find((boughtProductId)=>boughtProductId.toString()==prdct.toString())){ 
-        // console.log(prdct.toString()); 
-        // console.log(boughtProductId.toString());
-        // console.log(prdct.toString() !== boughtProductId.toString());
-        recommendedProducts.push({ id: prdct, detail: cluster_products[belongedTo][prdct] })
-        // console.log({ id: prdct, detail: cluster_products[belongedTo][prdct] });
-      }
+    // for (let prdct in cluster_products[belongedTo]) { // prdct = productId
+    //   // if (cluster_products[belongedTo][prdct].distance < cluster_products[belongedTo][boughtProductId].distance) {
+      
+    //   // if ko phai sp da mua
+    //   if(!boughtProducts.find((boughtProductId)=>boughtProductId.toString()==prdct.toString())){ 
+    //     // console.log(prdct.toString()); 
+    //     // console.log(boughtProductId.toString());
+    //     // console.log(prdct.toString() !== boughtProductId.toString());
+    //     recommendedProducts.push({ id: prdct, detail: cluster_products[belongedTo][prdct] })
+    //     // console.log({ id: prdct, detail: cluster_products[belongedTo][prdct] });
+    //   }
+    const mostNearCenter = findMostNearCenter(cluster_products[belongedTo],20,boughtProducts);
+    recommendedProducts = mostNearCenter.map((productId)=>({ id: productId, detail: cluster_products[belongedTo][productId] }))
 
-  }
+  
   // console.log('total recommended products');
   // console.log(JSON.stringify(recommendedProducts, null, 2));
 
